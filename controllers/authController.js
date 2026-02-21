@@ -81,16 +81,18 @@ const signup = async (req, res) => {
         if (process.env.SMTP_HOST) {
             const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
-            // Fire and forget email sending
-            sendEmail({
-                to: user.email,
-                subject: 'CareerSync - Email Verification',
-                text: message
-            }).then(emailSent => {
-                if (!emailSent) {
-                    console.warn('[Auth] Verification email failed to send in background.');
-                }
-            }).catch(e => console.error('[Auth] Async email error:', e));
+            // Yield the event loop completely to guarantee the HTTP response sends INSTANTLY
+            setTimeout(() => {
+                sendEmail({
+                    to: user.email,
+                    subject: 'CareerSync - Email Verification',
+                    text: message
+                }).then(emailSent => {
+                    if (!emailSent) {
+                        console.warn('[Auth] Verification email failed to send in background.');
+                    }
+                }).catch(e => console.error('[Auth] Async email error:', e));
+            }, 0);
 
             return res.status(200).json({
                 message: "Account created successfully. Please check your email to verify your account."
@@ -172,19 +174,21 @@ const forgotPassword = async (req, res) => {
 
         const message = `You are receiving this email because you (or someone else) have requested the reset of a password.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}`;
 
-        // Fire and forget email sending
-        sendEmail({
-            to: user.email,
-            subject: 'CareerSync - Password Reset Request',
-            text: message,
-        }).then(async emailSent => {
-            if (!emailSent) {
-                console.warn('[Auth] Password reset email failed to send in background.');
-                user.resetPasswordToken = undefined;
-                user.resetPasswordExpire = undefined;
-                await user.save();
-            }
-        }).catch(e => console.error('[Auth] Async email error:', e));
+        // Yield the event loop completely via setTimeout
+        setTimeout(() => {
+            sendEmail({
+                to: user.email,
+                subject: 'CareerSync - Password Reset Request',
+                text: message,
+            }).then(async emailSent => {
+                if (!emailSent) {
+                    console.warn('[Auth] Password reset email failed to send in background.');
+                    user.resetPasswordToken = undefined;
+                    user.resetPasswordExpire = undefined;
+                    await user.save();
+                }
+            }).catch(e => console.error('[Auth] Async email error:', e));
+        }, 0);
 
         // Always return success immediately to prevent timing attacks and server hanging
         return res.status(200).json({ message: "If an account exists, a password reset email has been sent." });
