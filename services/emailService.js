@@ -1,63 +1,35 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Initialize Ethereal testing account if no SMTP provided
-const createTransporter = async () => {
-    let transporter;
-
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        console.debug('[Email] Connecting to primary SMTP');
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-    } else {
-        console.warn('[Email] Fallback: Using Ethereal mock account');
-        const testAccount = await nodemailer.createTestAccount();
-        transporter = nodemailer.createTransport({
-            host: testAccount.smtp.host,
-            port: testAccount.smtp.port,
-            secure: testAccount.smtp.secure,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
-            },
-        });
-    }
-    return transporter;
-};
-
+// Fallback to test log if no API key is provided
 const sendEmail = async ({ to, subject, text, html }) => {
     try {
-        const transporter = await createTransporter();
-
-        const mailOptions = {
-            from: process.env.FROM_EMAIL || '"CareerSync Team" <careersync.mr@gmail.com>',
-            to,
-            subject,
-            text,
-            html
-        };
-
-        const info = await transporter.sendMail(mailOptions);
-
-        console.debug(`[Email] Dispatched to ${to} (${info.messageId})`);
-
-        if (!process.env.SMTP_HOST) {
-            console.debug(`[Email] Mock preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        if (!process.env.RESEND_API_KEY) {
+            console.warn(`[Email] No RESEND_API_KEY. Simulated email to ${to}: ${subject}`);
+            return true;
         }
 
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
+        const { data, error } = await resend.emails.send({
+            from: process.env.FROM_EMAIL || 'CareerSync <onboarding@resend.dev>',
+            to: [to],
+            // Resend only allows sending to the verified email (your email) on the free tier testing domains.
+            // If `to` is not your verified email, it will silently fail on free tier.
+            // To ensure you get it during testing, we can override or use the onboarding address.
+            subject: subject,
+            text: text,
+            html: html
+        });
+
+        if (error) {
+            console.error(`[Email] Resend API Error:`, error);
+            return false;
+        }
+
+        console.debug(`[Email] Dispatched via Resend to ${to} (${data.id})`);
         return true;
     } catch (error) {
-        console.error(`[Email] Delivery failed: ${error.message}`);
-        console.error(error);
+        console.error(`[Email] Delivery completely failed:`, error);
         return false;
     }
 };
