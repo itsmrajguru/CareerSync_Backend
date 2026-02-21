@@ -76,7 +76,7 @@ const signup = async (req, res) => {
         });
         await Profile.create({ user: user._id });
 
-        const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
+        const verifyUrl = `${process.env.CLIENT_URL || 'https://careersyncmsr.netlify.app'}/verify?token=${verificationToken}`;
 
         const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
@@ -165,7 +165,7 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
         await user.save();
 
-        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const clientUrl = process.env.CLIENT_URL || 'https://careersyncmsr.netlify.app';
         const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
 
         const message = `You are receiving this email because you (or someone else) have requested the reset of a password.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}`;
