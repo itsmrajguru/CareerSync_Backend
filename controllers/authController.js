@@ -52,7 +52,7 @@ const signup = async (req, res) => {
     const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
-        return res.status(400).json({ error: "Username, email, and password required" });
+        return res.status(400).json({ error: "Please provide all required fields" });
     }
 
     try {
@@ -76,22 +76,20 @@ const signup = async (req, res) => {
         });
         await Profile.create({ user: user._id });
 
-        if (user) {
-            const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-            const verifyUrl = `${clientUrl}/verify?token=${verificationToken}`;
+        const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
 
+        if (process.env.SMTP_HOST) {
             const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
             const emailSent = await sendEmail({
                 to: user.email,
                 subject: 'CareerSync - Email Verification',
-                text: message,
+                text: message
             });
 
             if (!emailSent) {
                 console.warn('[Auth] Verification email failed to send, but user was created.');
             }
-
             res.status(200).json({
                 message: "Account created successfully. Please check your email to verify your account."
             });
