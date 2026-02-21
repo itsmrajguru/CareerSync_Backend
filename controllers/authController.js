@@ -78,28 +78,24 @@ const signup = async (req, res) => {
 
         const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
 
-        if (process.env.SMTP_HOST) {
-            const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
+        const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
-            // Yield the event loop completely to guarantee the HTTP response sends INSTANTLY
-            setTimeout(() => {
-                sendEmail({
-                    to: user.email,
-                    subject: 'CareerSync - Email Verification',
-                    text: message
-                }).then(emailSent => {
-                    if (!emailSent) {
-                        console.warn('[Auth] Verification email failed to send in background.');
-                    }
-                }).catch(e => console.error('[Auth] Async email error:', e));
-            }, 0);
+        // Yield the event loop completely to guarantee the HTTP response sends INSTANTLY
+        setTimeout(() => {
+            sendEmail({
+                to: user.email,
+                subject: 'CareerSync - Email Verification',
+                text: message
+            }).then(emailSent => {
+                if (!emailSent) {
+                    console.warn('[Auth] Verification email failed to send in background.');
+                }
+            }).catch(e => console.error('[Auth] Async email error:', e));
+        }, 0);
 
-            return res.status(200).json({
-                message: "Account created successfully. Please check your email to verify your account."
-            });
-        } else {
-            return res.status(400).json({ error: "Invalid user data" });
-        }
+        return res.status(200).json({
+            message: "Account created successfully. Please check your email to verify your account."
+        });
     } catch (error) {
         console.error('[Auth] Signup error:', error);
         res.status(400).json({ error: "Server Error" });
