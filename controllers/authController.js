@@ -81,20 +81,22 @@ const signup = async (req, res) => {
         if (process.env.SMTP_HOST) {
             const message = `Welcome to CareerSync!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
-            const emailSent = await sendEmail({
+            // Fire and forget email sending
+            sendEmail({
                 to: user.email,
                 subject: 'CareerSync - Email Verification',
                 text: message
-            });
+            }).then(emailSent => {
+                if (!emailSent) {
+                    console.warn('[Auth] Verification email failed to send in background.');
+                }
+            }).catch(e => console.error('[Auth] Async email error:', e));
 
-            if (!emailSent) {
-                console.warn('[Auth] Verification email failed to send, but user was created.');
-            }
-            res.status(200).json({
+            return res.status(200).json({
                 message: "Account created successfully. Please check your email to verify your account."
             });
         } else {
-            res.status(400).json({ error: "Invalid user data" });
+            return res.status(400).json({ error: "Invalid user data" });
         }
     } catch (error) {
         console.error('[Auth] Signup error:', error);
@@ -170,20 +172,22 @@ const forgotPassword = async (req, res) => {
 
         const message = `You are receiving this email because you (or someone else) have requested the reset of a password.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}`;
 
-        const emailSent = await sendEmail({
+        // Fire and forget email sending
+        sendEmail({
             to: user.email,
             subject: 'CareerSync - Password Reset Request',
             text: message,
-        });
+        }).then(async emailSent => {
+            if (!emailSent) {
+                console.warn('[Auth] Password reset email failed to send in background.');
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpire = undefined;
+                await user.save();
+            }
+        }).catch(e => console.error('[Auth] Async email error:', e));
 
-        if (emailSent) {
-            res.status(200).json({ message: "Password reset email sent" });
-        } else {
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpire = undefined;
-            await user.save();
-            return res.status(500).json({ error: "Email could not be sent" });
-        }
+        // Always return success immediately to prevent timing attacks and server hanging
+        return res.status(200).json({ message: "If an account exists, a password reset email has been sent." });
     } catch (error) {
         console.error('[Auth] Forgot password error:', error);
         res.status(500).json({ error: "Server Error" });
