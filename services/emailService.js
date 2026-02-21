@@ -11,11 +11,8 @@ const sendEmail = async ({ to, subject, text, html }) => {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
         const { data, error } = await resend.emails.send({
-            from: 'CareerSync <onboarding@resend.dev>',
+            from: process.env.FROM_EMAIL,
             to: [to],
-            // Resend only allows sending to the verified email (your email) on the free tier testing domains.
-            // If `to` is not your verified email, it will silently fail on free tier.
-            // To ensure you get it during testing, we can override or use the onboarding address.
             subject: subject,
             text: text,
             html: html
