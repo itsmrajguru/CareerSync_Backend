@@ -14,6 +14,9 @@ const createTransporter = async () => {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
     } else {
         console.warn('[Email] Fallback: Using Ethereal mock account');
@@ -54,6 +57,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
         return true;
     } catch (error) {
         console.error(`[Email] Delivery failed: ${error.message}`);
+        console.error(error);
         return false;
     }
 };

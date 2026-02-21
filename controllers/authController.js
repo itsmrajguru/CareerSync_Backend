@@ -68,14 +68,11 @@ const signup = async (req, res) => {
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // FORCE VERIFICATION TO TRUE:
-        // Bypasses the strict email lock in case the free SMTP tier fails
         const user = await User.create({
             username,
             email,
             password,
-            verificationToken,
-            isVerified: true
+            verificationToken
         });
         await Profile.create({ user: user._id });
 
@@ -88,7 +85,7 @@ const signup = async (req, res) => {
             setTimeout(() => {
                 sendEmail({
                     to: user.email,
-                    subject: 'CareerSync - Welcome to the Platform',
+                    subject: 'CareerSync - Email Verification',
                     text: message
                 }).then(emailSent => {
                     if (!emailSent) {
@@ -98,7 +95,7 @@ const signup = async (req, res) => {
             }, 0);
 
             return res.status(200).json({
-                message: "Account created successfully! You can now log in."
+                message: "Account created successfully. Please check your email to verify your account."
             });
         } else {
             return res.status(400).json({ error: "Invalid user data" });
