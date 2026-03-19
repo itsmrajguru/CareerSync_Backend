@@ -6,8 +6,6 @@ const getProfiles = async (req, res) => {
     try {
         const populatedProfiles = await Profile.find({ user: req.user._id }).populate('user', 'id username email');
 
-        // Map Mongoose _id to Django id format
-
         const formattedProfiles = populatedProfiles.map(profile => {
             const p = profile.toObject();
             p.id = p._id; // Map _id to id
