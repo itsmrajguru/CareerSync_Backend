@@ -34,3 +34,7 @@ const sendEmail = async ({ to, subject, text, html }) => {
 module.exports = {
     sendEmail
 };
+<<<<<<< HEAD
+=======
+// Force update
+>>>>>>> b4fcf50cb8c4ba19695b1bccbb6764094cb7b3bb
