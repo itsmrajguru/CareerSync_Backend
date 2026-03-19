@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     },
     isVerified: {
         type: Boolean,
-        default: false
+        default: true //changed for local server run otherwise false
     },
     verificationToken: {
         type: String

@@ -21,9 +21,12 @@ const login = async (req, res) => {
         const user = await User.findOne({ username });
 
         if (user && (await user.matchPassword(password))) {
-            if (!user.isVerified) {
-                return res.status(403).json({ error: "Please verify your email before logging in" });
-            }
+            
+
+            /* changed for local server run otherwise comment out */
+            // if (!user.isVerified) {
+            //     return res.status(403).json({ error: "Please verify your email before logging in" });
+            // }
 
             const accessToken = generateAccessToken(user._id);
             const refreshToken = generateRefreshToken(user._id);
@@ -72,7 +75,8 @@ const signup = async (req, res) => {
             username,
             email,
             password,
-            verificationToken
+            verificationToken,
+            isVerified: true // changed to true for local server run , otherwise remove this line and comma (,)
         });
         await Profile.create({ user: user._id });
 
