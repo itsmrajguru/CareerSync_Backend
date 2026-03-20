@@ -1,7 +1,11 @@
 const express=require('express')
 const userProfileRouter=express.Router()
 
-const userProfileController = require('../controllers/useruserProfileController');
+//importing middleware
+const { protect } = require('../middleware/authMiddleware');
+
+// importing controller
+const userProfileController = require('../controllers/userProfileController');
 
 //profile routes
 userProfileRouter.get('/profile/', protect, userProfileController.getProfiles);

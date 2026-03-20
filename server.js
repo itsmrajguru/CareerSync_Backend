@@ -40,12 +40,12 @@ connectDB()
 //routes
 const{authRouter}=require('./routes/auth.routes')
 const{jobsRouter}=require('./routes/jobs.routes')
-const{profileRouter}=require('./routes/userProfile.routes')
-const{resumeRouter}=require('./routes/resumeUpload.routes')
+const{userProfileRouter}=require('./routes/userProfile.routes')
+const{resumeUploadRouter}=require('./routes/resumeUpload.routes')
 app.use('/api/auth',authRouter)
 app.use('/api/jobs',jobsRouter)
-app.use('/api/userProfile',profileRouter)
-app.use('/api/resumeUpload',resumeRouter)
+app.use('/api/userProfile',userProfileRouter)
+app.use('/api/resumeUpload',resumeUploadRouter)
 
 app.get('/', (req, res) => {
     res.send("<h1><b><strong>Hey Welcome to Carrer-Sync Platform</strong></b></h1>")
