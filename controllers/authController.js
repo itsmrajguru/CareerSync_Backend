@@ -5,10 +5,7 @@ const userModel = require('../models/User');
 const crypto = require('crypto');
 const profileModel = require('../models/Profile');
 const bcrypt = require('bcryptjs');
-const cookie = require('cookie-parser')
 const { sendEmail } = require('../services/emailService');
-const { access } = require('fs');
-
 
 //creating Token Generators 
 const generateAccessToken = (id) => {
@@ -145,7 +142,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     //validate the credenetials with joi.object
-    const { error } = await loginSchema.validate({ email, password })
+    const { error } = loginSchema.validate({ email, password })
 
     if (error) {
         return res.status(400).json({
@@ -201,9 +198,9 @@ const login = async (req, res) => {
                 success: true,
                 message: 'Login Successful',
                 accessToken,
-                /*only access token in response because
-                frontend stores the access token and sends it in 
-                teh authorization header and authMiddlware takes it */
+                /*only access token is sent in response because
+                it is storedd in the localStorage and sent to authMiddleware 
+                for verification of user by every 15 min  */
             });
 
         } catch (e) {
@@ -234,7 +231,7 @@ const verifyEmail = async (req, res) => {
                 message: 'Invalid or expired verification token'
             })
         }
-        
+
         // Fixed: Use document instance instead of Model class
         isTokenVerified.isVerified = true;
         isTokenVerified.verificationToken = undefined; //deletes the Verification Token as no need 
@@ -256,9 +253,9 @@ const verifyEmail = async (req, res) => {
 
 // POST /api/auth/token/refresh
 const refreshToken = async (req, res) => {
-
-    // read refreshToken from httpOnly cookie
-    // (axios sends it automatically because of withCredentials: true)
+    //extract the refresh Token from cookies
+    /* refreshToken is automatically send by axios due to
+    withCredentials : true*/
     const token = req.cookies.refreshToken;
 
     if (!token) {
@@ -267,17 +264,20 @@ const refreshToken = async (req, res) => {
             message: 'No refresh token found. Please login again.'
         });
     }
-
     try {
-        // verify the refresh token
-        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+        /* Step 1: Verify the token, Decode it and it will return
+            the original _id giveb by MongoDB,as we created token with
+            the help of that id */
+        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
 
-        // generate new accessToken
-        const accessToken = generateAccessToken(decoded.id);
+        //step2 :Generate new acess token
+        const newAccessToken = generateAccessToken(decoded?.id)
 
-        return res.status(200).json({
+        return res.status(201).json({
             success: true,
-            accessToken  // ← api.js reads this as res.data.accessToken ✅
+            message: 'NewAcessToken generated Successfully',
+            newAccessToken /*this will be stored in the originalRequest.headers.[authorization]
+          as a bearer token */
         });
 
     } catch (e) {
@@ -286,7 +286,8 @@ const refreshToken = async (req, res) => {
             message: 'Refresh token invalid or expired. Please login again.'
         });
     }
-};
+}
+
 
 module.exports = {
     signup,
