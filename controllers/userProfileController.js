@@ -1,10 +1,10 @@
-const Profile = require('../models/Profile');
-const User = require('../models/User'); // Required to populate user if needed, but serializer usually just gives user ID or object
+const profileModel = require('../models/Profile');
+const userModel = require('../models/User'); // Required to populate user if needed, but serializer usually just gives user ID or object
 
 // GET /api/profile/
 const getProfiles = async (req, res) => {
     try {
-        const populatedProfiles = await Profile.find({ user: req.user._id }).populate('user', 'id username email');
+        const populatedProfiles = await profileModel.find({ user: req.user._id }).populate('user', 'id username email');
 
         const formattedProfiles = populatedProfiles.map(profile => {
             const p = profile.toObject();
@@ -32,9 +32,9 @@ const getProfiles = async (req, res) => {
 const createProfile = async (req, res) => {
     try {
         const profileData = { ...req.body, user: req.user._id };
-        const profile = await Profile.create(profileData);
+        const profile = await profileModel.create(profileData);
 
-        const p = await Profile.findById(profile._id).populate('user', 'id username email');
+        const p = await profileModel.findById(profile._id).populate('user', 'id username email');
         const formatted = p.toObject();
         formatted.id = formatted._id;
         delete formatted._id;
@@ -53,7 +53,7 @@ const createProfile = async (req, res) => {
 // GET /api/profile/:id/
 const getProfile = async (req, res) => {
     try {
-        const profile = await Profile.findOne({ _id: req.params.id, user: req.user._id }).populate('user', 'id username email');
+        const profile = await profileModel.findOne({ _id: req.params.id, user: req.user._id }).populate('user', 'id username email');
 
         if (!profile) {
             return res.status(404).json({ detail: "Not found." });
@@ -78,13 +78,13 @@ const getProfile = async (req, res) => {
 // PUT /api/profile/:id/
 const updateProfile = async (req, res) => {
     try {
-        let profile = await Profile.findOne({ _id: req.params.id, user: req.user._id });
+        let profile = await profileModel.findOne({ _id: req.params.id, user: req.user._id });
 
         if (!profile) {
             return res.status(404).json({ detail: "Not found." });
         }
 
-        profile = await Profile.findByIdAndUpdate(req.params.id, req.body, {
+        profile = await profileModel.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true
         }).populate('user', 'id username email');
@@ -108,7 +108,7 @@ const updateProfile = async (req, res) => {
 // DELETE /api/profile/:id/
 const deleteProfile = async (req, res) => {
     try {
-        const profile = await Profile.findOne({ _id: req.params.id, user: req.user._id });
+        const profile = await profileModel.findOne({ _id: req.params.id, user: req.user._id });
 
         if (!profile) {
             return res.status(404).json({ detail: "Not found." });
@@ -119,7 +119,7 @@ const deleteProfile = async (req, res) => {
     } catch (error) {
         console.error('[Profile] delete error:', error);
         // Fallback to deleteOne if remove() is deprecated
-        await Profile.deleteOne({ _id: req.params.id });
+        await profileModel.deleteOne({ _id: req.params.id });
         res.status(204).json({});
     }
 };

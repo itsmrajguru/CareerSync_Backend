@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const userModel = require('../models/User');
 
 const protect = async (req, res, next) => {
     let token;
@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Get user from the token
-            req.user = await User.findById(decoded.id).select('-password');
+            req.user = await userModel.findById(decoded.id).select('-password');
 
             if (!req.user) {
                 return res.status(401).json({ detail: 'User not found' }); // Django message: "User not found" (rare) or "Given token not valid for any token type"
