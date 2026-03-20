@@ -22,4 +22,5 @@ const profileSchema = new mongoose.Schema({
     skills: { type: String, default: '' },
 });
 
-module.exports = mongoose.model('Profile', profileSchema);
+const profileModel = mongoose.model('Profile', profileSchema);
+module.exports = profileModel;
