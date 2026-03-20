@@ -5,7 +5,9 @@ const userModel = require('../models/User');
 const crypto = require('crypto');
 const profileModel = require('../models/Profile');
 const bcrypt = require('bcryptjs');
-const {sendEmail } = require('../services/emailService');
+const cookie = require('cookie-parser')
+const { sendEmail } = require('../services/emailService');
+const { access } = require('fs');
 
 
 //creating Token Generators 
@@ -25,6 +27,10 @@ const signupSchema = joi.object({
     password: joi.string().min(6).required()
 });
 
+const loginSchema = joi.object({
+    email: joi.string().email().required(),
+    password: joi.string().min(6).required()
+});
 
 // Signup Controller 
 
@@ -43,17 +49,25 @@ const signup = async (req, res) => {
             /* this error is an array which contains all error properties */
         });
     }
-    else{
-        try{
-            // now we will check whether the email already exists or not ?
+    else {
+        try {
+            /* now we will check whether the emailId or email
+             already exists or not ?*/
 
-            const isUserAlreadyExists = await userModel.findOne({ email });
-            /*for multiple properties --> { $or: [{name}, {password}] } */
+            const isUserAlreadyExists = await userModel.findOne({
+                $or: [
+                    { email }, { username }
+                ]
+            })
 
             if (isUserAlreadyExists) {
+                const msg = isUserAlreadyExists.email === email
+                    ? "Email is already registered"
+                    : "Username  is already taken"
+
                 return res.status(400).json({
                     success: false,
-                    message: 'Email is already registered'
+                    message: msg
                 });
             }
 
@@ -75,7 +89,7 @@ const signup = async (req, res) => {
 
             /* step2 :create a new user with updated VerificationToken and save in
             the database*/
-            const newlyCreatedUser = await userModel.create({
+            const getUser = await userModel.create({
                 username,
                 email,
                 password,
@@ -83,8 +97,8 @@ const signup = async (req, res) => {
                 isVerified: true // changed to true for local server run, otherwise remove this line and comma (,)
             });
 
-            // this Creates a blank profile for the newlycreateduser
-            await profileModel.create({ user: newlyCreatedUser._id });
+            // this Creates a blank profile for the getUser
+            await profileModel.create({ user: getUser._id });
 
             // Step 3: Build email verification URL
             const verifyUrl = `${process.env.CLIENT_URL || 'https://careersyncmsr.netlify.app'}/verify?token=${verificationToken}`;
@@ -93,220 +107,190 @@ const signup = async (req, res) => {
             const message = `Welcome to CareerSync Platform!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
 
             // Step 5: Send verification email
-            setTimeout(async() => {
+            setTimeout(async () => {
                 try {
-                    const emailSent=await sendEmail({
-                        to:newlyCreatedUser.email,
+                    const emailSent = await sendEmail({
+                        to: getUser.email,
                         subject: 'CareerSync - Email Verification',
-                        text :message
+                        text: message
                     })
-                    
-                    if(!emailSent){
-                        console.warn('[Auth] Verification email failed to send in background.');        
+
+                    if (!emailSent) {
+                        console.warn('[Auth] Verification email failed to send in background.');
                     }
                     console.log("Email Sent Successfully")
                 } catch (e) {
-                    console.log('Email Send Error :',e);
+                    console.log('Email Send Error :', e);
                 }
-            },0);
+            }, 0);
 
             return res.status(201).json({
                 success: true,
                 message: 'Account created successfully. Please verify your email.'
             });
-        }catch(e){
+        } catch (e) {
             console.log(e)
             res.status(500).json({
-                success:false,
+                success: false,
                 message: 'Something went wrong ! Please try again'
             })
         }
     }
-    
-    const verifyEmail=async (req,res) => {
+}; // Fixed: Added missing closing brace for signup function
+
+
+// Login Controller 
+const login = async (req, res) => {
+    //extract user credentials from req.body
+    const { email, password } = req.body;
+
+    //validate the credenetials with joi.object
+    const { error } = await loginSchema.validate({ email, password })
+
+    if (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.details[0].message
+        });
+    }
+    else {
         try {
-            //extract the token from frontend req.params
-            /* NOTE :We could sent the token to back-end through req.body
-            but its not a good practise, for small data like token,id 
-            always use req.params */
-            const {token}=req.params
-            
-            //validate the token
-            const isTokenVerified=await userModel.findOne({verificationToken:token})
-            
-            if(!isTokenVerified){
-                return res.status().json({
-                    success:false,
-                    message:'Invalid or expired verification token'
-                })
+            // step 1: verify whether the emailId is registered or not
+            const getUser = await userModel.findOne({ email })
+            if (!getUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Incorrect Email'
+                });
             }
-            userModel.isVerified=true;
-            userModel.verificationToken = undefined; //deletes the Verification Token as no need 
-            await userModel.save();
-        
+
+            // step 2: brcypt the password
+            const isPasswordCorrect = await getUser.matchPassword(password)
+
+            if (!isPasswordCorrect) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Incorrect Password'
+                });
+            }
+
+            //step 3:Check is the user Vetified 
+            /*when the user will verify the email
+            we are changing isVEerified===true and here
+            if the user is not verified,the this function will run*/
+
+            if (!getUser.isVerified) {
+                return res.status(200).json({
+                    success: false,
+                    message: 'Please verify your email before logging in'
+                });
+            }
+            //step 4:Generate Access & Refresh Tokens
+            const accessToken = generateAccessToken(getUser?._id)
+            const refreshToken = generateRefreshToken(getUser?._id)
+
+            //step 5: putting the tokens in the Cookie-Parser
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true, //js can not access it
+                secure: false,   // set true in production as (HTTPS)
+                sameSite: 'Lax',    // CSRF protection 
+                maxAge: 24 * 60 * 60 * 1000
+            })
+
             return res.status(200).json({
                 success: true,
-                message: 'Email verified successfully. You can now log in.'
+                message: 'Login Successful',
+                accessToken,
+                /*only access token in response because
+                frontend stores the access token and sends it in 
+                teh authorization header and authMiddlware takes it */
             });
-        }catch (e) {
-            console.log(e);
-            return res.status(500).json({
-              success: false,
-              message: 'Something went wrong ! Please try again'
-            });
+
+        } catch (e) {
+            console.log(e)
+            res.status(500).json({
+                success: false,
+                message: 'Something went wrong ! Please try again'
+            })
         }
-    
+    }
+}
+
+// VerifyEmail Controller 
+const verifyEmail = async (req, res) => {
+    try {
+        //extract the token from frontend req.params
+        /* NOTE :We could sent the token to back-end through req.body
+        but its not a good practise, for small data like token,id 
+        always use req.params */
+        const { token } = req.params
+
+        //validate the token
+        const isTokenVerified = await userModel.findOne({ verificationToken: token })
+
+        if (!isTokenVerified) {
+            return res.status(400).json({ // Fixed: Added 400 status code
+                success: false,
+                message: 'Invalid or expired verification token'
+            })
+        }
+        
+        // Fixed: Use document instance instead of Model class
+        isTokenVerified.isVerified = true;
+        isTokenVerified.verificationToken = undefined; //deletes the Verification Token as no need 
+        await isTokenVerified.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Email verified successfully. You can now log in.'
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            success: false,
+            message: 'Something went wrong ! Please try again'
+        });
+    }
+}
 
 
+// POST /api/auth/token/refresh
+const refreshToken = async (req, res) => {
 
-// // POST /api/login
-// const login = async (req, res) => {
-//     const { username, password } = req.body;
+    // read refreshToken from httpOnly cookie
+    // (axios sends it automatically because of withCredentials: true)
+    const token = req.cookies.refreshToken;
 
-//     try {
-//         const user = await userModel.findOne({ username });
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            message: 'No refresh token found. Please login again.'
+        });
+    }
 
-//         if (user && (await user.matchPassword(password))) {
-            
+    try {
+        // verify the refresh token
+        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-//             /* changed for local server run otherwise comment out */
-//             // if (!user.isVerified) {
-//             //     return res.status(403).json({ error: "Please verify your email before logging in" });
-//             // }
+        // generate new accessToken
+        const accessToken = generateAccessToken(decoded.id);
 
-//             const accessToken = generateAccessToken(user._id);
-//             const refreshToken = generateRefreshToken(user._id);
+        return res.status(200).json({
+            success: true,
+            accessToken  // ← api.js reads this as res.data.accessToken ✅
+        });
 
-//             res.json({
-//                 message: "Login successful",
-//                 refresh: refreshToken,
-//                 access: accessToken,
-//                 user: {
-//                     id: user._id,
-//                     username: user.username,
-//                     email: user.email
-//                 }
-//             });
-//         } else {
-//             res.status(400).json({ error: "Invalid credentials" }); // Django view line 29
-//         }
-//     } catch (error) {
-//         console.error('[Auth] Login failed:', error);
-//         res.status(500).json({ error: "Server Error" });
-//     }
-// };
-
-// // POST /api/token/refresh/
-// const refreshToken = async (req, res) => {
-//     const { refresh } = req.body;
-
-//     if (!refresh) {
-//         return res.status(400).json({ refresh: ["This field is required."] });
-//     }
-
-//     try {
-//         const decoded = jwt.verify(refresh, process.env.JWT_REFRESH_SECRET);
-//         const accessToken = generateAccessToken(decoded.id);
-
-//         res.json({
-//             access: accessToken,
-//         });
-
-//     } catch (error) {
-//         return res.status(401).json({ detail: "Token is invalid or expired", code: "token_not_valid" });
-//     }
-// };
-
-
-// // POST /api/forgot-password
-// const forgotPassword = async (req, res) => {
-//     const { email } = req.body;
-
-//     if (!email) {
-//         return res.status(400).json({ error: "Please provide an email address" });
-//     }
-
-//     try {
-//         const user = await userModel.findOne({ email });
-
-//         if (!user) {
-//             return res.status(404).json({ error: "No user found with that email" });
-//         }
-
-//         const resetToken = crypto.randomBytes(32).toString('hex');
-//         const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-//         user.resetPasswordToken = tokenHash;
-//         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-//         await user.save();
-
-//         const clientUrl = process.env.CLIENT_URL || 'https://careersyncmsr.netlify.app';
-//         const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
-
-//         const message = `You are receiving this email because you (or someone else) have requested the reset of a password.\n\nPlease click on the following link, or paste this into your browser to complete the process:\n\n${resetUrl}`;
-
-//         // Yield the event loop completely via setTimeout
-//         setTimeout(() => {
-//             emailSent({
-//                 to: user.email,
-//                 subject: 'CareerSync - Password Reset Request',
-//                 text: message,
-//             }).then(async emailSent => {
-//                 if (!emailSent) {
-//                     console.warn('[Auth] Password reset email failed to send in background.');
-//                     user.resetPasswordToken = undefined;
-//                     user.resetPasswordExpire = undefined;
-//                     await user.save();
-//                 }
-//             }).catch(e => console.error('[Auth] Async email error:', e));
-//         }, 0);
-
-//         // Always return success immediately to prevent timing attacks and server hanging
-//         return res.status(200).json({ message: "If an account exists, a password reset email has been sent." });
-//     } catch (error) {
-//         console.error('[Auth] Forgot password error:', error);
-//         res.status(500).json({ error: "Server Error" });
-//     }
-// };
-
-// // POST /api/reset-password
-// const resetPassword = async (req, res) => {
-//     const { token, password } = req.body;
-
-//     if (!token || !password) {
-//         return res.status(400).json({ error: "Token and new password required" });
-//     }
-
-//     try {
-//         const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-//         const user = await userModel.findOne({
-//             resetPasswordToken: tokenHash,
-//             resetPasswordExpire: { $gt: Date.now() }
-//         });
-
-//         if (!user) {
-//             return res.status(400).json({ error: "Invalid or expired reset token" });
-//         }
-
-//         user.password = password;
-//         user.resetPasswordToken = undefined;
-//         user.resetPasswordExpire = undefined;
-
-//         await user.save();
-
-//         res.status(200).json({ message: "Password reset successfully. You can now log in." });
-//     } catch (error) {
-//         console.error('[Auth] Reset password error:', error);
-//         res.status(500).json({ error: "Server Error" });
-//     }
-// };
+    } catch (e) {
+        return res.status(401).json({
+            success: false,
+            message: 'Refresh token invalid or expired. Please login again.'
+        });
+    }
+};
 
 module.exports = {
     signup,
     login,
     verifyEmail,
-    // refreshToken,
-    // forgotPassword,
-    // resetPassword
+    refreshToken
 };
