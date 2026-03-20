@@ -1,43 +1,31 @@
+require('dotenv').config()
 const jwt = require('jsonwebtoken');
-const userModel = require('../models/User');
 
-const protect = async (req, res, next) => {
+const protect=async(req,res,next)=>{
+    //extracting the authHeader from the req.headers.authorization
+    const authHeader=req.headers.authorization;
 
-    // check if Authorization header exists and starts with Bearer
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer')) {
+    if(!authHeader){
         return res.status(401).json({
-            success: false,
-            message: 'No token provided. Please login.'
+          success: false,
+          message: 'No token Provided.Please Login'
         });
     }
-
-    // extract token from "Bearer eyJhbGci..."
-    const token = authHeader.split(' ')[1];
-
+    //extracting token by spiltting authHeader
+    const token=authHeader.split(' ')[1];
     try {
-        // verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        //function 1:VERIFY TOKEN
+        const decoded=jwt.verify(token,process.env.JWT_SECRET)
 
-        // get user from DB, exclude password
-        req.user = await userModel.findById(decoded.id).select('-password');
-
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        next(); // ← user is valid, proceed to next middleware/controller
-
+        //function 2:SET req.user
+        req.user=decoded
+        next() //got to next middlewar or comtroller
     } catch (error) {
         return res.status(401).json({
             success: false,
             message: 'Token invalid or expired. Please login again.'
         });
     }
-};
+}
 
-module.exports = { protect };
+module.exports={protect}
