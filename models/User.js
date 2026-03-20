@@ -36,19 +36,39 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// Match Django's password hashing (bcrypt is close enough for new users, 
-// for existing Django users we'd need a custom hasher but this is a re-implementation, assuming fresh DB or migration)
-// User didn't ask for data migration, just re-implementation.
-userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
+/* as a good practice we are hashing as well as comparing
+entered password with the saved password in the model itself
+...
+we could do this in controller but as a good practice 
+always deal with only req and res in the controller */
+
+/*CONCEPT :
+We save plain password to the user object in memory.
+Before mongoose saves it to MongoDB, pre('save') intercepts it,
+hashes the password, and THEN saves the hashed version to DB.
+
+Plain password never reaches the database.
+
+'this' refers to the current user document (in memory)
+that is about to be saved.
+*/
+
+userSchema.pre('save',async function (){
+    /* this means if your updated username but not password 
+    then dont hask , keep it as it is..
+    
+    we need to add this     if(!this.isModified('password')){
+        return;}
+    because pre('save') runs before every .save()
+    whether it may be username,email or password 
+    */
+    if(!this.isModified('password')){
         return;
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-});
+    const salt=await bcrypt.genSalt(10);
+    this.password=await bcrypt.hash(this.passsword,salt)
+})
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-};
-
-module.exports = mongoose.model('User', userSchema);
+//creating a model
+const userModel=mongoose.model('User',userSchema)
+module.exports =userModel
