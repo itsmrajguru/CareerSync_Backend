@@ -1,31 +1,46 @@
 const { extractTextFromPDF, analyzeResume } = require('../services/resumeService');
 
-// POST /api/resume/upload/
 const uploadResume = async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No resume file provided" });
+
+        //fetch the file from frontend through req.file
+        const fileData = req.file
+
+        //validate the req.file
+        if (!fileData) {
+            return res.status(400).json({
+                success: false,
+                message: 'No resume file provided'
+            });
         }
 
-        const text = await extractTextFromPDF(req.file.buffer);
+        //extract text from the pdffile
+        const extractedTextfromPdf = await extractTextFromPDF(fileData.buffer)
 
-        if (!text) {
-            return res.status(400).json({ error: "Could not extract text from PDF" });
+        if (!extractedTextfromPdf) {
+            return res.status(400).json({
+                success: false,
+                message: 'Could not extract text from PDF'
+            });
         }
 
-        const analysis = analyzeResume(text);
+        //analyze the  pdfFile
 
-        // Intentionally skip profile DB update (mirrors Django logic)
-        res.json({
-            message: "Resume parsed successfully",
-            analysis: analysis,
+        const AnalysedPdf = analyzeResume(extractedTextfromPdf)
+
+        return res.status(200).json({
+            success: true,
+            message: 'Resume parsed successfully',
+            analysis: AnalysedPdf,
             profile_updated: false
         });
-
-    } catch (error) {
+    }catch (error) {
         console.debug('[Resume] Upload failed:', error.message);
-        res.status(500).json({ error: "Server Error" });
+        return res.status(500).json({
+          success: false,
+          message: 'server Error'
+        });
     }
 };
 
-module.exports = { uploadResume };
+module.exports={uploadResume}

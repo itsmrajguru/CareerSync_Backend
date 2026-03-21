@@ -1,5 +1,6 @@
 const pdf = require('pdf-parse');
 
+// created a vocabulary
 const TECH_SKILLS = [
     "python", "javascript", "react", "django", "node", "sql", "aws", "docker",
     "kubernetes", "git", "html", "css", "java", "c++", "c#", "go", "ruby",
@@ -7,6 +8,7 @@ const TECH_SKILLS = [
     "machine learning", "data science", "ai", "cloud", "devops", "agile"
 ];
 
+//here pdf function extracts 
 const extractTextFromPDF = async (buffer) => {
     try {
         const data = await pdf(buffer);
@@ -32,23 +34,9 @@ const analyzeResume = (text) => {
     // 1. Skill Extraction
     const found_skills = [];
     TECH_SKILLS.forEach(skill => {
-        // Regex word boundary matching
-        // Escape check for special chars just in case (e.g. c++)
         const escapedSkill = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`\\b${escapedSkill}\\b`, 'i'); // \b word boundary
-        // Note: 'c++' with \b might be tricky in JS regex depending on engine, 
-        // but `\b` matches between word char and non-word char. + is non-word.
-        // So `c++` \b might generally work or fail depending on if + is considered part of word (it isn't).
-        // Let's stick to standard behavior. JS \b matches [a-zA-Z0-9_] vs others.
-        // So \bc\+\+\b:
-        // " c++ " -> space is non-word, c is word. Match start.
-        // last + is non-word. space is non-word. \b matches between word and non-word.
-        // So \b matches "c" start. End \b matches between "+" and " ".
-        // Wait, + is non-word. So "++ " is non-word to non-word. No boundary there?
-        // Actually boundaries are complex. 
-        // Let's us simple includes for C++ / C# to be safe or use the python logic replication.
-        // Python `re.search(r'\b' + re.escape(skill) + r'\b', text_lower)`
-        // Python `\b` is aware of alphanumeric + underscore.
+
 
         if (regex.test(text_lower)) {
             found_skills.push(skill);
