@@ -4,7 +4,7 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const cookieParser=require('cookie-parser')
+const cookieParser = require('cookie-parser')
 
 /* dnscache is a short-term memory for the server.
 It remembers the IP address of external systems (like MongoDB Atlas),
@@ -22,8 +22,8 @@ require('dnscache')({
 app.use(
     cors({
         origin: [process.env.CLIENT_URL || "http://localhost:5173", "http://127.0.0.1:5173"],
-        methods:['GET','POST','PUT','PATCH'],
-        credentials:true
+        methods: ['GET', 'POST', 'PUT', 'PATCH'],
+        credentials: true
     })
 )
 
@@ -38,14 +38,14 @@ connectDB()
 
 
 //routes
-const{authRouter}=require('./routes/auth.routes')
-const{jobsRouter}=require('./routes/jobs.routes')
-const{userProfileRouter}=require('./routes/userProfile.routes')
-const{resumeUploadRouter}=require('./routes/resumeUpload.routes')
-app.use('/api/auth',authRouter)
-app.use('/api/jobs',jobsRouter)
-app.use('/api/userProfile',userProfileRouter)
-app.use('/api/resumeUpload',resumeUploadRouter)
+const { authRouter } = require('./routes/auth.routes')
+const { jobsRouter } = require('./routes/jobs.routes')
+const { userProfileRouter } = require('./routes/userProfile.routes')
+const { resumeUploadRouter } = require('./routes/resumeUpload.routes')
+app.use('/api/auth', authRouter)
+app.use('/api/jobs', jobsRouter)
+app.use('/api/userProfile', userProfileRouter)
+app.use('/api/resumeUpload', resumeUploadRouter)
 
 app.get('/', (req, res) => {
     res.send("<h1><b><strong>Hey Welcome to Carrer-Sync Platform</strong></b></h1>")
