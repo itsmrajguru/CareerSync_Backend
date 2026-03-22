@@ -228,8 +228,11 @@ const verifyEmail = async (req, res) => {
         always use req.params */
         const { token } = req.params
 
+        // Fixed: Hash the incoming token before searching the DB
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
         //validate the token
-        const isTokenVerified = await userModel.findOne({ verificationToken: token })
+        const isTokenVerified = await userModel.findOne({ verificationToken: hashedToken })
 
         if (!isTokenVerified) {
             return res.status(400).json({ // Fixed: Added 400 status code
@@ -398,9 +401,12 @@ const resetPassword = async (req, res) => {
     }
     else {
         try {
+            // Fixed: Hash the incoming token before searching the DB
+            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
             //validate token
             const getUser = await userModel.findOne({
-                resetPasswordToken: token,
+                resetPasswordToken: hashedToken,
                 resetPasswordExpire: { $gt: Date.now() }
             })
 

@@ -12,8 +12,6 @@ const getProfiles = async (req, res) => {
             delete p._id;
             delete p.__v;
 
-            delete p.__v;
-
             if (p.user) {
                 p.user.id = p.user._id;
                 delete p.user._id;
