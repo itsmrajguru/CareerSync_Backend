@@ -40,10 +40,10 @@ const signup = async (req, res) => {
     const { error } = signupSchema.validate({ username, email, password });
 
     if (error) {
+        console.error("Signup validation error:", error.details[0].message);
         return res.status(400).json({
             success: false,
             message: error.details[0].message
-            /* this error is an array which contains all error properties */
         });
     }
     else {
@@ -60,8 +60,9 @@ const signup = async (req, res) => {
             if (isUserAlreadyExists) {
                 const msg = isUserAlreadyExists.email === email
                     ? "Email is already registered"
-                    : "Username  is already taken"
+                    : "Username is already taken"
 
+                console.error("Signup error:", msg);
                 return res.status(400).json({
                     success: false,
                     message: msg
@@ -97,7 +98,7 @@ const signup = async (req, res) => {
                 email,
                 password,
                 verificationToken: hashedVerificationToken,
-                isVerified: true // changed to true for local server run, otherwise remove this line and comma (,)
+                // isVerified: true // changed to true for local server run, otherwise remove this line and comma (,)
             });
 
             // this Creates a blank profile for the getUser
