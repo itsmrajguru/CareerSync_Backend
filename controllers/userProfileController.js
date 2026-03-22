@@ -22,7 +22,10 @@ const getProfiles = async (req, res) => {
         res.json(formattedProfiles);
     } catch (error) {
         console.error('[Profile] list error:', error);
-        res.status(500).json({ error: "Server Error" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to fetch profiles" 
+        });
     }
 };
 
@@ -44,7 +47,10 @@ const createProfile = async (req, res) => {
         res.status(201).json(formatted);
     } catch (error) {
         console.error('[Profile] create error:', error);
-        res.status(400).json({ error: "Invalid data" });
+        res.status(400).json({ 
+            success: false, 
+            message: error.message || "Invalid profile data" 
+        });
     }
 };
 
@@ -54,7 +60,10 @@ const getProfile = async (req, res) => {
         const profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id }).populate('user', 'id username email');
 
         if (!profile) {
-            return res.status(404).json({ detail: "Not found." });
+            return res.status(404).json({ 
+                success: false, 
+                message: "Profile not found" 
+            });
         }
 
         const formatted = profile.toObject();
@@ -66,10 +75,16 @@ const getProfile = async (req, res) => {
             delete formatted.user._id;
         }
 
-        res.json(formatted);
+        res.json({
+            success: true,
+            ...formatted
+        });
     } catch (error) {
         console.error('[Profile] detail error:', error);
-        res.status(404).json({ detail: "Not found." });
+        res.status(404).json({ 
+            success: false, 
+            message: "Profile not found or error fetching details" 
+        });
     }
 };
 
@@ -79,7 +94,10 @@ const updateProfile = async (req, res) => {
         let profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id });
 
         if (!profile) {
-            return res.status(404).json({ detail: "Not found." });
+            return res.status(404).json({ 
+                success: false, 
+                message: "Profile not found" 
+            });
         }
 
         profile = await profileModel.findByIdAndUpdate(req.params.id, req.body, {
@@ -96,10 +114,17 @@ const updateProfile = async (req, res) => {
             delete formatted.user._id;
         }
 
-        res.json(formatted);
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            ...formatted
+        });
     } catch (error) {
         console.error('[Profile] update error:', error);
-        res.status(400).json({ error: "Invalid data" });
+        res.status(400).json({ 
+            success: false, 
+            message: error.message || "Failed to update profile" 
+        });
     }
 };
 
@@ -109,7 +134,10 @@ const deleteProfile = async (req, res) => {
         const profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id });
 
         if (!profile) {
-            return res.status(404).json({ detail: "Not found." });
+            return res.status(404).json({ 
+                success: false, 
+                message: "Profile not found" 
+            });
         }
 
         await profile.deleteOne();
