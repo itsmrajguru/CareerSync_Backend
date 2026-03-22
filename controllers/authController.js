@@ -21,12 +21,12 @@ const generateRefreshToken = (id) => {
 const signupSchema = joi.object({
     username: joi.string().required(),
     email: joi.string().email().required(),
-    password: joi.string().min(4).required()
+    password: joi.string().min(6).required()
 });
 
 const loginSchema = joi.object({
     email: joi.string().email().required(),
-    password: joi.string().min(4).required()
+    password: joi.string().min(6).required()
 });
 
 // Signup Controller 
@@ -388,7 +388,7 @@ const resetPassword = async (req, res) => {
 
     //generate a newPassword Validation Schema
     const newPasswordSchema = joi.object({
-        newPassword: joi.string().min(4).required()
+    newPassword: joi.string().min(6).required()
     })
 
     //validate the newPassword
