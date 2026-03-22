@@ -5,6 +5,8 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
+const chalk = require('chalk');
+const boxen = require('boxen');
 
 /* dnscache is a short-term memory for the server.
 It remembers the IP address of external systems (like MongoDB Atlas),
@@ -52,7 +54,19 @@ app.get('/', (req, res) => {
 })
 
 const PORT = process.env.PORT || 8000
-app.listen(PORT, () => {
-    console.log(`Server Started at http://localhost:${PORT}`);
-})
+// app.listen(PORT, () => {
+//     console.log(`Server Started at http://localhost:${PORT}`);
+// })
 
+
+app.listen(PORT, () => {
+    const message = chalk.green.bold(`Server Started at http://localhost:${PORT}`);
+    const box = boxen(message, {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'double',
+        borderColor: 'green',
+        textAlignment: 'center'
+    });
+    console.log(box);
+});
