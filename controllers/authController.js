@@ -105,7 +105,7 @@ const signup = async (req, res) => {
             await profileModel.create({ user: getUser._id });
 
             // Step 3: Build email verification URL
-            const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify?token=${verificationToken}`;
+            const verifyUrl = `${process.env.CLIENT_URL || 'https://careersyncplatform.netlify.app'}/verify?token=${verificationToken}`;
 
             // Step 4: pass the VerifyUrl in the message
             const message = `Welcome to CareerSync Platform!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
@@ -345,7 +345,7 @@ const forgotPassword = async (req, res) => {
             await getUser.save()
 
             //step 3:Inject the reset Token in the resetURL
-            const resetURL = `${process.env.CLIENT_URL || 'https://careersyncmsrr.netlify.app'}/reset-password?token=${resetToken}`
+            const resetURL = `${process.env.CLIENT_URL || 'https://careersyncplatform.netlify.app'}/reset-password?token=${resetToken}`
 
             //Step 4 :generate a message
             const msg = `You requested a password reset.\n\nReset your password here (valid 15 mins):\n\n${resetURL}\n\nIgnore this email if you didn't request it.`
