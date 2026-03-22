@@ -23,6 +23,7 @@ require('dnscache')({
 //cors for cross-origin platforms
 const allowedOrigins = [
     process.env.CLIENT_URL,
+    "https://careersyncplatform.netlify.app",
     "https://careersyncmsrr.netlify.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173"
