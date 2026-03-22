@@ -8,7 +8,7 @@ const authController = require('../controllers/authController');
 authRouter.post('/login/', authController.login);
 authRouter.post('/signup/', authController.signup);
 authRouter.post('/token/refresh/', authController.refreshToken);
-authRouter.post('/verify/:token/', authController.verifyEmail);
+authRouter.post('/verify/:tokena/', authController.verifyEmail);
 authRouter.post('/forgot-password/', authController.forgotPassword);
 authRouter.post('/reset-password/', authController.resetPassword);
 

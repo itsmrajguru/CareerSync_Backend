@@ -21,10 +21,25 @@ require('dnscache')({
 });
 
 //cors for cross-origin platforms
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "https://careersyncmsrr.netlify.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+].filter(Boolean);
+
 app.use(
     cors({
-        origin: [process.env.CLIENT_URL || "http://localhost:5173", "http://127.0.0.1:5173"],
-        methods: ['GET', 'POST', 'PUT', 'PATCH'],
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                callback(new Error('Not allowed by CORS'));
+            }
+        },
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     })
 )

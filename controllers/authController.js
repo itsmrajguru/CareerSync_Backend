@@ -341,7 +341,7 @@ const forgotPassword = async (req, res) => {
             await getUser.save()
 
             //step 3:Inject the reset Token in the resetURL
-            const resetURL = `${process.env.CLIENT_URL || 'https://careersyncmsr.netlify.app'}/reset-password?token=${resetToken}`
+            const resetURL = `${process.env.CLIENT_URL || 'https://careersyncmsrr.netlify.app'}/reset-password?token=${resetToken}`
 
             //Step 4 :generate a message
             const msg = `You requested a password reset.\n\nReset your password here (valid 15 mins):\n\n${resetURL}\n\nIgnore this email if you didn't request it.`
