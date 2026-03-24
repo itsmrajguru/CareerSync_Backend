@@ -24,7 +24,6 @@ require('dnscache')({
 const allowedOrigins = [
     process.env.CLIENT_URL,
     "https://careersyncplatform.netlify.app",
-    "https://careersyncplatform.netlify.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173"
 ].filter(Boolean);

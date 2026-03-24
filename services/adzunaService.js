@@ -1,5 +1,3 @@
-// const axios = require('axios');
-
 const axios = require('axios')
 
 //this Function returns jobs using adzuna Job search Service

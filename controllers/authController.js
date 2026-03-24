@@ -120,7 +120,7 @@ const signup = async (req, res) => {
                     })
 
                     if (!emailSent) {
-                        console.log(`Vericaltion Email send failed...`);
+                        console.log(`Verification Email send failed...`);
                     }
                     console.log("Email Sent Successfully")
                 } catch (e) {
@@ -184,7 +184,7 @@ const login = async (req, res) => {
             if the user is not verified,the this function will run*/
 
             if (!getUser.isVerified) {
-                return res.status(200).json({
+                return res.status(403).json({
                     success: false,
                     message: 'Please verify your email before logging in'
                 });
@@ -196,7 +196,7 @@ const login = async (req, res) => {
             //step 5: putting the tokens in the Cookie-Parser
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true, //js can not access it
-                secure: false,   // set true in production as (HTTPS)
+                secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
                 sameSite: 'Lax',    // CSRF protection 
                 maxAge: 24 * 60 * 60 * 1000
             })
@@ -283,9 +283,9 @@ const refreshToken = async (req, res) => {
         //step2 :Generate new acess token
         const newAccessToken = generateAccessToken(decoded?.id)
 
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
-            message: 'NewAcessToken generated Successfully',
+            message: 'New Access Token generated Successfully',
             newAccessToken /*this will be stored in the originalRequest.headers.[authorization]
           as a bearer token */
         });

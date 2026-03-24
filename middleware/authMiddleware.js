@@ -19,7 +19,7 @@ const protect=async(req,res,next)=>{
 
         //function 2:SET req.user
         req.user=decoded
-        next() //got to next middlewar or comtroller
+        next() //go to next middleware or controller
     } catch (error) {
         return res.status(401).json({
             success: false,

@@ -144,9 +144,10 @@ const deleteProfile = async (req, res) => {
         res.status(204).json({});
     } catch (error) {
         console.error('[Profile] delete error:', error);
-        // Fallback to deleteOne if remove() is deprecated
-        await profileModel.deleteOne({ _id: req.params.id });
-        res.status(204).json({});
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete profile'
+        });
     }
 };
 
