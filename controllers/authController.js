@@ -98,7 +98,7 @@ const signup = async (req, res) => {
                 email,
                 password,
                 verificationToken: hashedVerificationToken,
-                // isVerified: true // changed to true for local server run, otherwise remove this line and comma (,)
+                isVerified: true // LOCAL DEV ONLY — comment this out before deploying to production
             });
 
             // this Creates a blank profile for the getUser
