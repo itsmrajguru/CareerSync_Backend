@@ -1,153 +1,110 @@
 const profileModel = require('../models/Profile');
-const userModel = require('../models/User'); // Required to populate user if needed, but serializer usually just gives user ID or object
 
-// GET /api/profile/
+/* This function is a helper function, 
+which formats the data compatible for the fronntend...*/
+
+const formatProfile = (profile) => {
+    const p = profile.toObject();
+
+    p.id = p._id; //Frontend usually prefer id not _id
+    delete p._id;   //frontend dont need _id as well as __v
+    delete p.__v;
+
+    if (p.user) {
+        p.user.id = p.user._id;
+        delete p.user._id;
+    }
+
+    return p;
+};
+
+// GET all profiles (current user)
 const getProfiles = async (req, res) => {
     try {
-        const populatedProfiles = await profileModel.find({ user: req.user.id }).populate('user', 'id username email');
+        // This searches for all available profiles of a indivisual user
+        const profiles = await profileModel
+            .find({ user: req.user.id })
+            .populate('user', 'username email');
 
-        const formattedProfiles = populatedProfiles.map(profile => {
-            const p = profile.toObject();
-            p.id = p._id; // Map _id to id
-            delete p._id;
-            delete p.__v;
-
-            if (p.user) {
-                p.user.id = p.user._id;
-                delete p.user._id;
-            }
-            return p;
-        });
-
-        res.json(formattedProfiles);
+        res.json(profiles.map(formatProfile));
     } catch (error) {
-        console.error('[Profile] list error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Failed to fetch profiles" 
-        });
+        res.status(500).json({ message: "Failed to fetch profiles" });
     }
 };
 
-// POST /api/profile/
+// CREATE profile
 const createProfile = async (req, res) => {
     try {
-        const profileData = { ...req.body, user: req.user.id };
-        const profile = await profileModel.create(profileData);
-
-        const p = await profileModel.findById(profile._id).populate('user', 'id username email');
-        const formatted = p.toObject();
-        formatted.id = formatted._id;
-        delete formatted._id;
-        delete formatted.__v;
-        if (formatted.user) {
-            formatted.user.id = formatted.user._id;
-            delete formatted.user._id;
-        }
-        res.status(201).json(formatted);
-    } catch (error) {
-        console.error('[Profile] create error:', error);
-        res.status(400).json({ 
-            success: false, 
-            message: error.message || "Invalid profile data" 
+        /* This creates a new model with user data */
+        const profile = await profileModel.create({
+            ...req.body,   //this attches the upcoming payload
+            user: req.user.id  //this attaches the user id with the data
         });
+
+        /* populating the user , so that user info can be added */
+        const populated = await profile.populate('user', 'username email');
+
+        /* this formats the data */
+        res.status(201).json(formatProfile(populated));
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 };
 
-// GET /api/profile/:id/
+// GET single profile
 const getProfile = async (req, res) => {
     try {
-        const profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id }).populate('user', 'id username email');
+        // Seraching the profile though user id in the profileModel
+        const profile = await profileModel
+            .findOne({ _id: req.params.id, user: req.user.id })
+            .populate('user', 'username email');
 
-        if (!profile) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Profile not found" 
-            });
-        }
+        if (!profile)
+            return res.status(404).json({ message: "Profile not found" });
 
-        const formatted = profile.toObject();
-        formatted.id = formatted._id;
-        delete formatted._id;
-        delete formatted.__v;
-        if (formatted.user) {
-            formatted.user.id = formatted.user._id;
-            delete formatted.user._id;
-        }
-
-        res.json({
-            success: true,
-            ...formatted
-        });
+        res.json(formatProfile(profile));
     } catch (error) {
-        console.error('[Profile] detail error:', error);
-        res.status(404).json({ 
-            success: false, 
-            message: "Profile not found or error fetching details" 
-        });
+        res.status(404).json({ message: "Profile not found" });
     }
 };
 
-// PUT /api/profile/:id/
+// UPDATE profile
 const updateProfile = async (req, res) => {
     try {
-        let profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id });
+        /* Finding the user and update the existing data with
+        new data comiing in the request*/
+        const profile = await profileModel
+            .findOneAndUpdate(
+                { _id: req.params.id, user: req.user.id },
+                req.body,
+                { new: true, runValidators: true }
+            )
+            .populate('user', 'username email');
 
-        if (!profile) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Profile not found" 
-            });
-        }
+        if (!profile)
+            return res.status(404).json({ message: "Profile not found" });
 
-        profile = await profileModel.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
-        }).populate('user', 'id username email');
-
-        const formatted = profile.toObject();
-        formatted.id = formatted._id;
-        delete formatted._id;
-        delete formatted.__v;
-        if (formatted.user) {
-            formatted.user.id = formatted.user._id;
-            delete formatted.user._id;
-        }
-
-        res.json({
-            success: true,
-            message: "Profile updated successfully",
-            ...formatted
-        });
+        res.json(formatProfile(profile));
     } catch (error) {
-        console.error('[Profile] update error:', error);
-        res.status(400).json({ 
-            success: false, 
-            message: error.message || "Failed to update profile" 
-        });
+        res.status(400).json({ message: error.message });
     }
 };
 
-// DELETE /api/profile/:id/
+// DELETE profile
 const deleteProfile = async (req, res) => {
     try {
-        const profile = await profileModel.findOne({ _id: req.params.id, user: req.user.id });
-
-        if (!profile) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Profile not found" 
-            });
-        }
-
-        await profile.deleteOne();
-        res.status(204).json({});
-    } catch (error) {
-        console.error('[Profile] delete error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete profile'
+        /* Finding the user and delete the saqved data  */
+        const profile = await profileModel.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user.id
         });
+
+        if (!profile)
+            return res.status(404).json({ message: "Profile not found" });
+
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ message: "Failed to delete profile" });
     }
 };
 

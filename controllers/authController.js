@@ -208,8 +208,12 @@ const login = async (req, res) => {
                 /*only access token is sent in response because
                 it is storedd in the localStorage and sent to authMiddleware 
                 for verification of user by every 15 min  */
+                user: {
+                    _id: getUser._id,
+                    username: getUser.username,
+                    email: getUser.email
+                }
             });
-
         } catch (e) {
             console.log(e)
             res.status(500).json({
@@ -388,7 +392,7 @@ const resetPassword = async (req, res) => {
 
     //generate a newPassword Validation Schema
     const newPasswordSchema = joi.object({
-    newPassword: joi.string().min(6).required()
+        newPassword: joi.string().min(6).required()
     })
 
     //validate the newPassword
