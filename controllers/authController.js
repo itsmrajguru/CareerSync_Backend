@@ -5,6 +5,7 @@ const userModel = require('../models/User');
 const crypto = require('crypto');
 const profileModel = require('../models/Profile');
 const bcrypt = require('bcryptjs');
+const otpModel = require('../models/Otp');
 const { sendEmail } = require('../services/emailService');
 
 //creating Token Generators 
@@ -143,7 +144,40 @@ const signup = async (req, res) => {
 }; // Fixed: Added missing closing brace for signup function
 
 
-// Login Controller 
+
+// ─── OLD LOGIN SYSTEM (Email Verification) — kept for reference ───────────────
+// const login_OLD_EMAIL_VERIFICATION = async (req, res) => {
+//     const { email, password } = req.body;
+//     const { error } = loginSchema.validate({ email, password })
+//     if (error) {
+//         return res.status(400).json({ success: false, message: error.details[0].message });
+//     } else {
+//         try {
+//             const getUser = await userModel.findOne({ email })
+//             if (!getUser) return res.status(400).json({ success: false, message: 'Incorrect Email' });
+//             const isPasswordCorrect = await getUser.matchPassword(password)
+//             if (!isPasswordCorrect) return res.status(400).json({ success: false, message: 'Incorrect Password' });
+//             if (!getUser.isVerified) {
+//                 return res.status(403).json({ success: false, message: 'Please verify your email before logging in' });
+//             }
+//             const accessToken = generateAccessToken(getUser?._id)
+//             const refreshToken = generateRefreshToken(getUser?._id)
+//             res.cookie('refreshToken', refreshToken, {
+//                 httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax', maxAge: 24 * 60 * 60 * 1000
+//             })
+//             return res.status(200).json({
+//                 success: true, message: 'Login Successful', accessToken,
+//                 user: { _id: getUser._id, username: getUser.username, email: getUser.email }
+//             });
+//         } catch (e) {
+//             console.log(e)
+//             res.status(500).json({ success: false, message: 'Something went wrong ! Please try again' })
+//         }
+//     }
+// }
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Login Controller — validates credentials and sends OTP via email
 const login = async (req, res) => {
     //extract user credentials from req.body
     const { email, password } = req.body;
@@ -168,7 +202,7 @@ const login = async (req, res) => {
                 });
             }
 
-            // step 2: brcypt the password
+            // step 2: bcrypt the password
             const isPasswordCorrect = await getUser.matchPassword(password)
 
             if (!isPasswordCorrect) {
@@ -178,41 +212,39 @@ const login = async (req, res) => {
                 });
             }
 
-            //step 3:Check is the user Vetified 
-            /*when the user will verify the email
-            we are changing isVEerified===true and here
-            if the user is not verified,the this function will run*/
+            // step 3: generate a 6-digit OTP and delete any previous OTPs for this email
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await otpModel.deleteMany({ email });
+            await otpModel.create({ email, otp: otpCode });
 
-            if (!getUser.isVerified) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Please verify your email before logging in'
-                });
-            }
-            //step 4:Generate Access & Refresh Tokens
-            const accessToken = generateAccessToken(getUser?._id)
-            const refreshToken = generateRefreshToken(getUser?._id)
+            // step 4: send OTP email via Resend
+            const html = `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
+                    <h2 style="color:#0179a0;margin-bottom:8px;">Your CareerSync Login Code</h2>
+                    <p style="color:#444;font-size:15px;">Use the OTP below to complete your login. It expires in <strong>10 minutes</strong>.</p>
+                    <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#111;background:#fff;border:2px solid #b3eefb;border-radius:12px;padding:20px 28px;display:inline-block;margin:20px 0;">${otpCode}</div>
+                    <p style="color:#888;font-size:12px;">If you did not request this, you can safely ignore this email.</p>
+                </div>
+            `;
 
-            //step 5: putting the tokens in the Cookie-Parser
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true, //js can not access it
-                secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
-                sameSite: 'Lax',    // CSRF protection 
-                maxAge: 24 * 60 * 60 * 1000
-            })
+            setTimeout(async () => {
+                try {
+                    await sendEmail({
+                        to: email,
+                        subject: 'CareerSync — Your Login OTP',
+                        text: `Your CareerSync OTP is: ${otpCode}. It expires in 10 minutes.`,
+                        html
+                    });
+                } catch (e) {
+                    console.log('OTP Email Send Error:', e);
+                }
+            }, 0);
 
             return res.status(200).json({
                 success: true,
-                message: 'Login Successful',
-                accessToken,
-                /*only access token is sent in response because
-                it is storedd in the localStorage and sent to authMiddleware 
-                for verification of user by every 15 min  */
-                user: {
-                    _id: getUser._id,
-                    username: getUser.username,
-                    email: getUser.email
-                }
+                message: 'OTP sent to your email address',
+                requiresOtp: true,
+                email
             });
         } catch (e) {
             console.log(e)
@@ -221,6 +253,57 @@ const login = async (req, res) => {
                 message: 'Something went wrong ! Please try again'
             })
         }
+    }
+}
+
+// Verify OTP Controller — validates OTP code and issues JWT tokens
+const verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+    }
+
+    try {
+        const record = await otpModel.findOne({ email });
+
+        if (!record) {
+            return res.status(400).json({ success: false, message: 'OTP expired or not found. Please login again.' });
+        }
+
+        if (record.otp !== otp.toString()) {
+            return res.status(400).json({ success: false, message: 'Incorrect OTP. Please try again.' });
+        }
+
+        // OTP is valid — delete it so it cannot be reused
+        await otpModel.deleteMany({ email });
+
+        const getUser = await userModel.findOne({ email });
+
+        // Generate Access & Refresh Tokens
+        const accessToken = generateAccessToken(getUser._id);
+        const refreshToken = generateRefreshToken(getUser._id);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Login Successful',
+            accessToken,
+            user: {
+                _id: getUser._id,
+                username: getUser.username,
+                email: getUser.email
+            }
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
     }
 }
 
@@ -444,6 +527,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
     signup,
     login,
+    verifyOtp,
     verifyEmail,
     refreshToken,
     resetPassword,
