@@ -52,14 +52,15 @@ const signup = async (req, res) => {
             /* now we will check whether the emailId or email
              already exists or not ?*/
 
-            const isUserAlreadyExists = await userModel.findOne({
+            const existingUser = await userModel.findOne({
                 $or: [
                     { email }, { username }
                 ]
             })
 
-            if (isUserAlreadyExists) {
-                const msg = isUserAlreadyExists.email === email
+            /* if user already exists and is verified, reject */
+            if (existingUser && existingUser.isVerified) {
+                const msg = existingUser.email === email
                     ? "Email is already registered"
                     : "Username is already taken"
 
@@ -70,58 +71,60 @@ const signup = async (req, res) => {
                 });
             }
 
+            /* if user exists but is not verified, delete the stale record
+            and allow them to re-register */
+            if (existingUser && !existingUser.isVerified) {
+                await userModel.deleteOne({ _id: existingUser._id });
+            }
+
             // Next is hashing the password (already done in userModel via pre('save'))
 
-            /* STEPS FOR EMAIL VERIFICATION:
-                Step 1 : when user registers with email-id, generate random token
-                Step 2 : save random token in database as VerificationToken
-                Step 3 : generate a Verify URL which will contain frontendURL + verificationToken
-                Step 4 : pass this verifyURL to message
-                Step 5 : pass the message to emailservice provider
-                Step 6 : sen email to user
-                Step 7 : accept the token through the frontend
-                Step 8 : and verify the token through VerifyEmail REST API
+            /* STEPS FOR OTP EMAIL VERIFICATION:
+                Step 1 : Create a new user with isVerified: false
+                Step 2 : Generate a random 6-digit OTP
+                Step 3 : Delete any old OTPs for this email and save the new one
+                Step 4 : Build OTP email HTML
+                Step 5 : Send OTP email to user via Resend
+                Step 6 : Return requiresOtp: true so frontend shows the OTP input
+                Step 7 : User enters OTP on frontend → calls /verify-signup-otp
+                Step 8 : On OTP match, mark isVerified: true and create blank profile
             */
 
-            // step 1: generate verification token
-            const verificationToken = crypto.randomBytes(32).toString('hex');
-
-            //EXTRA :Hash Token
-            const hashedVerificationToken = crypto
-                .createHash('sha256')
-                .update(verificationToken)
-                .digest('hex')
-
-            /* step2 :create a new user with updated VerificationToken and save in
-            the database*/
-            const getUser = await userModel.create({
+            // Step 1 : Create the user with isVerified false (pending verification)
+            await userModel.create({
                 username,
                 email,
                 password,
-                verificationToken: hashedVerificationToken,
-                isVerified: true // LOCAL DEV ONLY — comment this out before deploying to production
+                isVerified: false
             });
 
-            // this Creates a blank profile for the getUser
-            await profileModel.create({ user: getUser._id });
+            // Step 2 : generate a 6-digit OTP and clear any previous OTPs for this email
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await otpModel.deleteMany({ email });
+            await otpModel.create({ email, otp: otpCode });
 
-            // Step 3: Build email verification URL
-            const verifyUrl = `${process.env.CLIENT_URL || 'https://careersyncplatform.netlify.app'}/verify?token=${verificationToken}`;
+            // Step 3 : Build OTP email HTML
+            const html = `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
+                    <h2 style="color:#0179a0;margin-bottom:8px;">Verify Your CareerSync Account</h2>
+                    <p style="color:#444;font-size:15px;">Use the OTP below to complete your registration. It expires in <strong>10 minutes</strong>.</p>
+                    <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#111;background:#fff;border:2px solid #b3eefb;border-radius:12px;padding:20px 28px;display:inline-block;margin:20px 0;">${otpCode}</div>
+                    <p style="color:#888;font-size:12px;">If you did not create a CareerSync account, you can safely ignore this email.</p>
+                </div>
+            `;
 
-            // Step 4: pass the VerifyUrl in the message
-            const message = `Welcome to CareerSync Platform!\n\nPlease verify your email by clicking on the following link:\n\n${verifyUrl}`;
-
-            // Step 5: Send verification email
+            // Step 4 : Send OTP email via Resend
             setTimeout(async () => {
                 try {
                     const emailSent = await sendEmail({
-                        to: getUser.email,
-                        subject: 'CareerSync - Email Verification',
-                        text: message
+                        to: email,
+                        subject: 'CareerSync — Verify Your Account',
+                        text: `Your CareerSync verification OTP is: ${otpCode}. It expires in 10 minutes.`,
+                        html
                     })
 
                     if (!emailSent) {
-                        console.log(`Verification Email send failed...`);
+                        console.log(`Verification OTP Email send failed...`);
                     }
                     console.log("Email Sent Successfully")
                 } catch (e) {
@@ -131,7 +134,9 @@ const signup = async (req, res) => {
 
             return res.status(201).json({
                 success: true,
-                message: 'Account created successfully. Please verify your email.'
+                message: 'OTP sent to your email. Please verify to complete registration.',
+                requiresOtp: true,
+                email
             });
         } catch (e) {
             console.log(e)
@@ -141,43 +146,52 @@ const signup = async (req, res) => {
             })
         }
     }
-}; // Fixed: Added missing closing brace for signup function
+};
 
 
+// Verify Signup OTP Controller — validates OTP and marks user as verified
+const verifySignupOtp = async (req, res) => {
+    //extract email and otp from req.body
+    const { email, otp } = req.body;
 
-// ─── OLD LOGIN SYSTEM (Email Verification) — kept for reference ───────────────
-// const login_OLD_EMAIL_VERIFICATION = async (req, res) => {
-//     const { email, password } = req.body;
-//     const { error } = loginSchema.validate({ email, password })
-//     if (error) {
-//         return res.status(400).json({ success: false, message: error.details[0].message });
-//     } else {
-//         try {
-//             const getUser = await userModel.findOne({ email })
-//             if (!getUser) return res.status(400).json({ success: false, message: 'Incorrect Email' });
-//             const isPasswordCorrect = await getUser.matchPassword(password)
-//             if (!isPasswordCorrect) return res.status(400).json({ success: false, message: 'Incorrect Password' });
-//             if (!getUser.isVerified) {
-//                 return res.status(403).json({ success: false, message: 'Please verify your email before logging in' });
-//             }
-//             const accessToken = generateAccessToken(getUser?._id)
-//             const refreshToken = generateRefreshToken(getUser?._id)
-//             res.cookie('refreshToken', refreshToken, {
-//                 httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax', maxAge: 24 * 60 * 60 * 1000
-//             })
-//             return res.status(200).json({
-//                 success: true, message: 'Login Successful', accessToken,
-//                 user: { _id: getUser._id, username: getUser.username, email: getUser.email }
-//             });
-//         } catch (e) {
-//             console.log(e)
-//             res.status(500).json({ success: false, message: 'Something went wrong ! Please try again' })
-//         }
-//     }
-// }
-// ─────────────────────────────────────────────────────────────────────────────
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+    }
 
-// Login Controller — validates credentials and sends OTP via email
+    try {
+        //step 1 : look up the OTP record for this email
+        const record = await otpModel.findOne({ email });
+
+        if (!record) {
+            return res.status(400).json({ success: false, message: 'OTP expired or not found. Please sign up again.' });
+        }
+
+        //step 2 : compare the entered OTP with the saved one
+        if (record.otp !== otp.toString()) {
+            return res.status(400).json({ success: false, message: 'Incorrect OTP. Please try again.' });
+        }
+
+        // OTP is valid — delete it so it cannot be reused
+        await otpModel.deleteMany({ email });
+
+        //step 3 : mark the user as verified in the database
+        const user = await userModel.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
+
+        // this Creates a blank profile for the verified user
+        await profileModel.create({ user: user._id });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Email verified successfully. You can now log in.'
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
+    }
+}
+
+
+// Login Controller — validates credentials and issues JWT tokens directly
 const login = async (req, res) => {
     //extract user credentials from req.body
     const { email, password } = req.body;
@@ -195,155 +209,32 @@ const login = async (req, res) => {
         try {
             // step 1: verify whether the emailId is registered or not
             const getUser = await userModel.findOne({ email })
-            if (!getUser) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Incorrect Email'
-                });
-            }
+            if (!getUser) return res.status(400).json({ success: false, message: 'Incorrect Email' });
 
             // step 2: bcrypt the password
             const isPasswordCorrect = await getUser.matchPassword(password)
 
-            if (!isPasswordCorrect) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Incorrect Password'
-                });
+            if (!isPasswordCorrect) return res.status(400).json({ success: false, message: 'Incorrect Password' });
+
+            // step 3: check if the user has verified their email via OTP during signup
+            if (!getUser.isVerified) {
+                return res.status(403).json({ success: false, message: 'Please verify your email before logging in.' });
             }
 
-            // step 3: generate a 6-digit OTP and delete any previous OTPs for this email
-            const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-            await otpModel.deleteMany({ email });
-            await otpModel.create({ email, otp: otpCode });
-
-            // step 4: send OTP email via Resend
-            const html = `
-                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
-                    <h2 style="color:#0179a0;margin-bottom:8px;">Your CareerSync Login Code</h2>
-                    <p style="color:#444;font-size:15px;">Use the OTP below to complete your login. It expires in <strong>10 minutes</strong>.</p>
-                    <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#111;background:#fff;border:2px solid #b3eefb;border-radius:12px;padding:20px 28px;display:inline-block;margin:20px 0;">${otpCode}</div>
-                    <p style="color:#888;font-size:12px;">If you did not request this, you can safely ignore this email.</p>
-                </div>
-            `;
-
-            setTimeout(async () => {
-                try {
-                    await sendEmail({
-                        to: email,
-                        subject: 'CareerSync — Your Login OTP',
-                        text: `Your CareerSync OTP is: ${otpCode}. It expires in 10 minutes.`,
-                        html
-                    });
-                } catch (e) {
-                    console.log('OTP Email Send Error:', e);
-                }
-            }, 0);
-
+            // step 4: generate access and refresh tokens and set cookie
+            const accessToken = generateAccessToken(getUser?._id)
+            const refreshToken = generateRefreshToken(getUser?._id)
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax', maxAge: 24 * 60 * 60 * 1000
+            })
             return res.status(200).json({
-                success: true,
-                message: 'OTP sent to your email address',
-                requiresOtp: true,
-                email
+                success: true, message: 'Login Successful', accessToken,
+                user: { _id: getUser._id, username: getUser.username, email: getUser.email }
             });
         } catch (e) {
             console.log(e)
-            res.status(500).json({
-                success: false,
-                message: 'Something went wrong ! Please try again'
-            })
+            res.status(500).json({ success: false, message: 'Something went wrong ! Please try again' })
         }
-    }
-}
-
-// Verify OTP Controller — validates OTP code and issues JWT tokens
-const verifyOtp = async (req, res) => {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-        return res.status(400).json({ success: false, message: 'Email and OTP are required' });
-    }
-
-    try {
-        const record = await otpModel.findOne({ email });
-
-        if (!record) {
-            return res.status(400).json({ success: false, message: 'OTP expired or not found. Please login again.' });
-        }
-
-        if (record.otp !== otp.toString()) {
-            return res.status(400).json({ success: false, message: 'Incorrect OTP. Please try again.' });
-        }
-
-        // OTP is valid — delete it so it cannot be reused
-        await otpModel.deleteMany({ email });
-
-        const getUser = await userModel.findOne({ email });
-
-        // Generate Access & Refresh Tokens
-        const accessToken = generateAccessToken(getUser._id);
-        const refreshToken = generateRefreshToken(getUser._id);
-
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            maxAge: 24 * 60 * 60 * 1000
-        });
-
-        return res.status(200).json({
-            success: true,
-            message: 'Login Successful',
-            accessToken,
-            user: {
-                _id: getUser._id,
-                username: getUser.username,
-                email: getUser.email
-            }
-        });
-    } catch (e) {
-        console.log(e);
-        res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
-    }
-}
-
-// VerifyEmail Controller 
-const verifyEmail = async (req, res) => {
-    try {
-        //extract the token from frontend req.params
-        /* NOTE :We could sent the token to back-end through req.body
-        but its not a good practise, for small data like token,id 
-        always use req.params */
-        const { token } = req.params
-
-        // Fixed: Hash the incoming token before searching the DB
-        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-        //validate the token
-        const isTokenVerified = await userModel.findOne({ verificationToken: hashedToken })
-
-        if (!isTokenVerified) {
-            return res.status(400).json({ // Fixed: Added 400 status code
-                success: false,
-                message: 'Invalid or expired verification token'
-            })
-        }
-
-        // Fixed: Use document instance instead of Model class
-        isTokenVerified.isVerified = true;
-        isTokenVerified.verificationToken = undefined; //deletes the Verification Token as no need 
-        await isTokenVerified.save();
-
-        return res.status(200).json({
-            success: true,
-            message: 'Email verified successfully. You can now log in.'
-        });
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json({
-            success: false,
-            message: 'Something went wrong ! Please try again'
-        });
     }
 }
 
@@ -427,7 +318,7 @@ const forgotPassword = async (req, res) => {
                 .update(resetToken)
                 .digest('hex')
             //update DB with resetToken
-            getUser.resetPasswordToken =hashedResetToken;
+            getUser.resetPasswordToken = hashedResetToken;
             getUser.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
             await getUser.save()
 
@@ -526,9 +417,8 @@ const resetPassword = async (req, res) => {
 }
 module.exports = {
     signup,
+    verifySignupOtp,
     login,
-    verifyOtp,
-    verifyEmail,
     refreshToken,
     resetPassword,
     forgotPassword

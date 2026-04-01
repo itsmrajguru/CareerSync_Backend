@@ -5,11 +5,10 @@ const authRouter=express.Router()
 const authController = require('../controllers/authController');
 
 // User Authentication Routes
-authRouter.post('/login/', authController.login);
-authRouter.post('/verify-otp/', authController.verifyOtp);
 authRouter.post('/signup/', authController.signup);
+authRouter.post('/verify-signup-otp/', authController.verifySignupOtp); //verifies OTP sent during signup to complete registration
+authRouter.post('/login/', authController.login);
 authRouter.post('/token/refresh/', authController.refreshToken);
-authRouter.post('/verify/:token/', authController.verifyEmail);
 authRouter.post('/forgot-password/', authController.forgotPassword);
 authRouter.post('/reset-password/', authController.resetPassword);
 

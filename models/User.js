@@ -14,15 +14,12 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: false,
-        default: ''
+        required: true,
+        unique: true
     },
     isVerified: {
         type: Boolean,
-        default: false //changed for local server run otherwise false
-    },
-    verificationToken: {
-        type: String
+        default: false
     },
     resetPasswordToken: {
         type: String
