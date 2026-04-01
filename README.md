@@ -5,11 +5,6 @@
 **The REST API powering the CareerSync career platform.**  
 Built with Node.js · Express · MongoDB · Resend · Adzuna API
 
-[![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![License](https://img.shields.io/badge/License-ISC-blue)](LICENSE)
-
 </div>
 
 ---
@@ -17,6 +12,24 @@ Built with Node.js · Express · MongoDB · Resend · Adzuna API
 ## 📖 About
 
 CareerSync Backend is the server-side API that powers user authentication (OTP-based), job searching, user profile management, and AI-assisted resume analysis. It is designed as a stateless REST API consumed by the [CareerSync Frontend](https://github.com/itsmrajguru/CareerSync_Frontend).
+
+---
+
+## 🧰 Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| Express 5 | HTTP framework |
+| Mongoose 9 | MongoDB ODM |
+| bcryptjs | Password hashing |
+| jsonwebtoken | JWT creation & verification |
+| Joi | Request validation |
+| Resend | Transactional email delivery |
+| Multer | PDF file upload (memory storage) |
+| pdf-parse | Extract text from uploaded PDFs |
+| Axios | Adzuna API HTTP client |
+| dnscache | DNS caching for Atlas performance |
+| dotenv | Environment variable management |
 
 ---
 
@@ -62,44 +75,6 @@ CareerSync-Backend/
 ├── .env.example                # Environment variable template
 └── server.js                   # App entry point
 ```
-
----
-
-## 🔌 API Reference
-
-### Auth — `/api/auth`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/signup/` | ❌ | Register a new user |
-| `POST` | `/login/` | ❌ | Validate credentials & send OTP |
-| `POST` | `/verify-otp/` | ❌ | Submit OTP → receive JWT tokens |
-| `POST` | `/token/refresh/` | 🍪 Cookie | Refresh access token |
-| `POST` | `/forgot-password/` | ❌ | Send password reset email |
-| `POST` | `/reset-password/` | ❌ | Apply new password |
-| `POST` | `/verify/:token/` | ❌ | Email link verification (legacy) |
-
-### Jobs — `/api/jobs`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/jobs/?q=&page=&limit=&country=&days=&sort=` | 🔒 JWT | Search jobs via Adzuna |
-
-### Profile — `/api/userProfile`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/profile/` | 🔒 JWT | Get all profiles for current user |
-| `POST` | `/profile/` | 🔒 JWT | Create a new profile |
-| `GET` | `/profile/:id/` | 🔒 JWT | Get a single profile |
-| `PUT` | `/profile/:id/` | 🔒 JWT | Update profile |
-| `DELETE` | `/profile/:id/` | 🔒 JWT | Delete profile |
-
-### Resume — `/api/resumeUpload`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/resume/upload/` | 🔒 JWT | Upload PDF resume → ATS analysis |
 
 ---
 
@@ -207,28 +182,10 @@ POST /api/auth/verify-otp
 
 ---
 
-## 🧰 Tech Stack
-
-| Technology | Purpose |
-|------------|---------|
-| Express 5 | HTTP framework |
-| Mongoose 9 | MongoDB ODM |
-| bcryptjs | Password hashing |
-| jsonwebtoken | JWT creation & verification |
-| Joi | Request validation |
-| Resend | Transactional email delivery |
-| Multer | PDF file upload (memory storage) |
-| pdf-parse | Extract text from uploaded PDFs |
-| Axios | Adzuna API HTTP client |
-| dnscache | DNS caching for Atlas performance |
-| dotenv | Environment variable management |
-
----
-
 ## 🤝 Related
 
 - **Frontend:** [CareerSync Frontend](https://github.com/itsmrajguru/CareerSync_Frontend)
-- **Live App:** [careersyncplatform.netlify.app](https://careersyncplatform.netlify.app)
+- **Live App:** [careersyncplatform.netlify.app]()
 
 ---
 
