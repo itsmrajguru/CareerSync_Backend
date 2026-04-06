@@ -1,4 +1,4 @@
-const profileModel = require('../models/Profile');
+const profileModel = require('../models/studentModels/StudentProfile');
 
 /* This function is a helper function, 
 which formats the data compatible for the fronntend...*/
