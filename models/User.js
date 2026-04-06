@@ -17,6 +17,17 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+
+    /*Thid is the most important field , that
+    seperate users with the frontend the will be redirected..
+    This fiels seperates the users and knows which dashboard to
+    show and which routes to allow. */
+    role: {
+        type: String,
+        enum: ['student', 'company', 'admin'],
+        default: 'student'
+    },
+
     isVerified: {
         type: Boolean,
         default: false
@@ -36,7 +47,7 @@ const userSchema = new mongoose.Schema({
 /* as a good practice we are hashing as well as comparing
 entered password with the saved password in the model itself
 ...
-we could do this in controller but as a good practice 
+We could do this in controller but as a good practice
 always deal with only req and res in the controller */
 
 /*CONCEPT :
