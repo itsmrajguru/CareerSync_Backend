@@ -4,6 +4,7 @@ const joi = require('joi');
 const userModel = require('../models/User');
 const crypto = require('crypto');
 const profileModel = require('../models/Profile');
+const companyModel = require('../models/Company');
 const bcrypt = require('bcryptjs');
 const otpModel = require('../models/Otp');
 const { sendEmail } = require('../services/emailService');
@@ -22,7 +23,9 @@ const generateRefreshToken = (id) => {
 const signupSchema = joi.object({
     username: joi.string().required(),
     email: joi.string().email().required(),
-    password: joi.string().min(6).required()
+    password: joi.string().min(6).required(),
+    role: joi.string().valid('student', 'company').default('student')
+    // Change 1: admin accounts cannot be self-registered
 });
 
 const loginSchema = joi.object({
@@ -35,10 +38,11 @@ const loginSchema = joi.object({
 const signup = async (req, res) => {
 
     // Firstly extract credentials from frontend
-    const { username, email, password } = req.body;
+    //Change 1: extract role from request body
+    const { username, email, password, role = 'student' } = req.body;
 
     // then lets validate the user credentials
-    const { error } = signupSchema.validate({ username, email, password });
+    const { error } = signupSchema.validate({ username, email, password, role });
 
     if (error) {
         console.error("Signup validation error:", error.details[0].message);
@@ -91,10 +95,12 @@ const signup = async (req, res) => {
             */
 
             // Step 1 : Create the user with isVerified false (pending verification)
+            // Change 1: include role when creating the user 
             await userModel.create({
                 username,
                 email,
                 password,
+                role,
                 isVerified: false
             });
 
@@ -136,7 +142,8 @@ const signup = async (req, res) => {
                 success: true,
                 message: 'OTP sent to your email. Please verify to complete registration.',
                 requiresOtp: true,
-                email
+                email,
+                role  // Change 1: return role so frontend can store it for the OTP page
             });
         } catch (e) {
             console.log(e)
@@ -177,12 +184,20 @@ const verifySignupOtp = async (req, res) => {
         //step 3 : mark the user as verified in the database
         const user = await userModel.findOneAndUpdate({ email }, { isVerified: true }, { new: true });
 
-        // this Creates a blank profile for the verified user
-        await profileModel.create({ user: user._id });
+        // Change 1: create blank profiles for the verified users on the basis of role
+        // if role ->student , then create blank profile in the studentProfile
+        // otherwise create blank profile in the CompanyProfile d
+       
+        if (user.role === 'student') {
+            await profileModel.create({ user: user._id });
+        } else if (user.role === 'company') {
+            await companyModel.create({ user: user._id });
+        }
 
         return res.status(200).json({
             success: true,
-            message: 'Email verified successfully. You can now log in.'
+            message: 'Email verified successfully. You can now log in.',
+            role: user.role  // Change 1:frontend uses this to redirect to correct login page
         });
     } catch (e) {
         console.log(e);
@@ -227,9 +242,22 @@ const login = async (req, res) => {
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax', maxAge: 24 * 60 * 60 * 1000
             })
+
+            //return role in login response 
+            // Frontend uses role to redirect:
+            //   student → /student/dashboard
+            //   company → /company/dashboard
+            //   admin   → /admin/dashboard
             return res.status(200).json({
-                success: true, message: 'Login Successful', accessToken,
-                user: { _id: getUser._id, username: getUser.username, email: getUser.email }
+                success: true,
+                message: 'Login Successful',
+                accessToken,
+                user: {
+                    _id: getUser._id,
+                    username: getUser.username,
+                    email: getUser.email,
+                    role: getUser.role
+                }
             });
         } catch (e) {
             console.log(e)
