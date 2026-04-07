@@ -2,8 +2,8 @@ const express=require('express')
 const companyProfileRouter=express.Router()
 
 const{getMyCompanyProfile, updateCompanyProfile, getCompanyById } = require('../../controllers/CompanyControllers/companyProfileController')
-const { protect } = require('../../middleware/authMiddleware');  //for authentication
-const { isCompany } = require('../../middleware/roleMiddleware'); //for role identification
+const { protect } = require('../../middleware/authMiddleware/authMiddleware');
+const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
 
 // Company profile routes(/api/v1/companies/)
 
@@ -11,7 +11,7 @@ const { isCompany } = require('../../middleware/roleMiddleware'); //for role ide
 companyProfileRouter.get('/me', protect, isCompany, getMyCompanyProfile);
 companyProfileRouter.put('/me', protect, isCompany, updateCompanyProfile);
 
-// "/:id" routes — for admin or user viewing a specific student's profile
+// "/:id" routes — for admin or user viewing a specific company's profile
 companyProfileRouter.get('/:id', protect, getCompanyById);
 
 module.exports={companyProfileRouter}

@@ -1,4 +1,4 @@
-const profileModel = require('../../models/studentModels/StudentProfile');
+const profileModel = require('../../models/studentModels/StudentProfileModel');
 
 /*This function acts as a bridge between the mongoDB and the react app
 because it acts as a translator between them */

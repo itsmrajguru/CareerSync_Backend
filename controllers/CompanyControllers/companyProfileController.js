@@ -1,10 +1,10 @@
-const CompanyProfile = require('../../models/companyModels/CompanyProfile');
+const CompanyProfile = require('../../models/companyModels/CompanyProfileModel');
 
 /* lets create a function for the company to return their own profile 
    for this, frontend axios calls /api/v1/companies/me
    and me is hardcoded which backedn  fetches  from the authMiddleware
    that provides the id */
-   
+
 const getMyCompanyProfile = async (req, res) => {
     try {
         // extract the company userId to get their profile

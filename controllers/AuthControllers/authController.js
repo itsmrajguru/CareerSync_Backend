@@ -1,12 +1,12 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
-const userModel = require('../../models/AuthModels/User');
+const userModel = require('../../models/AuthModels/UserModel');
 const crypto = require('crypto');
-const profileModel = require('../../models/studentModels/StudentProfile');
-const companyModel = require('../../models/companyModels/CompanyProfile');
+const profileModel = require('../../models/studentModels/StudentProfileModel');
+const companyModel = require('../../models/companyModels/CompanyProfileModel');
 const bcrypt = require('bcryptjs');
-const otpModel = require('../../models/AuthModels/Otp');
+const otpModel = require('../../models/AuthModels/OtpModel');
 const { sendEmail } = require('../../services/emailService');
 
 //creating Token Generators 
@@ -187,7 +187,7 @@ const verifySignupOtp = async (req, res) => {
         // Change 1: create blank profiles for the verified users on the basis of role
         // if role ->student , then create blank profile in the studentProfile
         // otherwise create blank profile in the CompanyProfile d
-       
+
         if (user.role === 'student') {
             await profileModel.create({ user: user._id });
         } else if (user.role === 'company') {

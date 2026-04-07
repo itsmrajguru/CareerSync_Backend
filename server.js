@@ -55,12 +55,12 @@ connectDB()
 
 
 //routes
-const { authRouter } = require('./routes/AuthRoutes/auth.routes')
-const { studentProfileRouter } = require('./routes/StudentRoutes/studentProfile.routes')
-const { companyProfileRouter } = require('./routes/CompanyRoutes/companyProfile.routes')
+const { authRouter } = require('./routes/AuthRoutes/authRoutes')
+const { studentProfileRouter } = require('./routes/StudentRoutes/studentProfileRoutes')
+const { companyProfileRouter } = require('./routes/CompanyRoutes/companyProfileRoutes')
 const { jobsRouter } = require('./routes/JobsRoutes/jobs.routes')
-const { externalJobsRouter } = require('./routes/JobsRoutes/externalJobs.routes')
-const { applicationRouter } = require('./routes/ApplicationRoutes/application.routes')
+const { externalJobsRouter } = require('./routes/JobsRoutes/externalJobsRoutes')
+const { applicationRouter } = require('./routes/ApplicationRoutes/applicationRoutes')
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/students', studentProfileRouter)

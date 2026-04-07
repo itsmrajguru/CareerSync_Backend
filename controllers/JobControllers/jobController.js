@@ -121,4 +121,28 @@ const getAllJobs = async (req, res) => {
     }
 }
 
-module.exports = { createJob, getMyJobs, updateJob, deleteJob, getAllJobs };
+// get a single job by its id (public — students can view job details)
+const getJobById = async (req, res) => {
+    try {
+        // search the job by its mongodb _id from the url params
+        const job = await Job.findById(req.params.id).populate('company', 'name logo location');
+
+        // if job not found, then return "Job not found"
+        if (!job)
+            return res.status(404).json({
+                success: false,
+                message: 'Job not found'
+            });
+        res.status(200).json({
+            success: true,
+            job
+        });
+    } catch (e) {
+        res.status(500).json({
+            success: false,
+            message: e.message
+        });
+    }
+}
+
+module.exports = { createJob, getMyJobs, getJobById, updateJob, deleteJob, getAllJobs };
