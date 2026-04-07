@@ -108,7 +108,7 @@ const deleteJob = async (req, res) => {
 const getAllJobs = async (req, res) => {
     try {
         // extract the jobs directly from all companies with status open 
-        const jobs = await Job.find({ status: 'open' }).populate('company', 'name logo location').sort({ createdAt: -1 });
+        const jobs = await Job.find({ status: 'open' }).populate('company', 'name location industry').sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             jobs
@@ -125,7 +125,7 @@ const getAllJobs = async (req, res) => {
 const getJobById = async (req, res) => {
     try {
         // search the job by its mongodb _id from the url params
-        const job = await Job.findById(req.params.id).populate('company', 'name logo location');
+        const job = await Job.findById(req.params.id).populate('company', 'name location industry');
 
         // if job not found, then return "Job not found"
         if (!job)

@@ -58,7 +58,7 @@ const getMyApplications = async (req, res) => {
         model and serach in the model */
         const applications = await Application.find({ student: req.user.id })
             .populate('job', 'title location jobType status')
-            .populate('company', 'name logo')
+            .populate('company', 'name location')
             .sort({ appliedAt: -1 });
 
         res.status(200).json({
