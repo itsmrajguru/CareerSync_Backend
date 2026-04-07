@@ -1,5 +1,5 @@
-const Job = require('../../models/JobModels/Job');
-const CompanyProfile = require('../../models/companyModels/CompanyProfile');
+const Job = require('../../models/JobModels/JobModel');
+const CompanyProfile = require('../../models/companyModels/CompanyProfileModel');
 
 // lets create a function for the company to craete jobs
 const createJob = async (req, res) => {
