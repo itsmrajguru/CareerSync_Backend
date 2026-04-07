@@ -70,7 +70,7 @@ app.use('/api/v1/external-jobs', externalJobsRouter)
 app.use('/api/v1/applications', applicationRouter)
 
 app.get('/', (req, res) => {
-    res.send("<h1><b><strong>CarrerSync Platform's Backedn is running...</strong></b></h1>")
+    res.send("<h1><b><strong>CarrerSync Platform's Backend is running...</strong></b></h1>")
 })
 
 const PORT = process.env.PORT || 8000

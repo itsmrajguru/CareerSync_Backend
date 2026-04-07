@@ -1,13 +1,10 @@
-const express=require('express')
-const externalJobsRouter=express.Router()
+const express = require('express')
+const externalJobsRouter = express.Router()
 
-//importing middleware
-const { protect } = require('../../middleware/authMiddleware');
-
-//importing controller
+const { protect } = require('../../middleware/authMiddleware/auth.middleware');
 const { getJobs } = require('../../controllers/JobControllers/externalJobController');
 
-//external jobs routes (Adzuna API)
+//external jobs routes (/api/v1/external-jobs/) [Adzuna API]
 externalJobsRouter.get('/', protect, getJobs);
 
-module.exports={externalJobsRouter}
+module.exports = { externalJobsRouter }
