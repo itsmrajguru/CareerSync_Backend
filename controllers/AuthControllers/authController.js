@@ -1,12 +1,12 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const joi = require('joi');
-const userModel = require('../models/User');
+const userModel = require('../../models/AuthModels/User');
 const crypto = require('crypto');
 const profileModel = require('../../models/studentModels/StudentProfile');
 const companyModel = require('../../models/companyModels/CompanyProfile');
 const bcrypt = require('bcryptjs');
-const otpModel = require('../models/Otp');
+const otpModel = require('../../models/AuthModels/Otp');
 const { sendEmail } = require('../../services/emailService');
 
 //creating Token Generators 
