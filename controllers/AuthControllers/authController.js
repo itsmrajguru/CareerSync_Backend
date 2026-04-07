@@ -9,9 +9,11 @@ const bcrypt = require('bcryptjs');
 const otpModel = require('../../models/AuthModels/OtpModel');
 const { sendEmail } = require('../../services/emailService');
 
-//creating Token Generators 
-const generateAccessToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+//creating Token Generators
+// Both id AND role are embedded in the token payload so that authMiddleware
+// can set req.user = { id, role } and roleMiddleware can check req.user.role.
+const generateAccessToken = (id, role) => {
+    return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '15m' });
 };
 
 const generateRefreshToken = (id) => {
@@ -237,7 +239,8 @@ const login = async (req, res) => {
             }
 
             // step 4: generate access and refresh tokens and set cookie
-            const accessToken = generateAccessToken(getUser?._id)
+            // Pass role so req.user.role is available throughout all protected routes
+            const accessToken = generateAccessToken(getUser?._id, getUser?.role)
             const refreshToken = generateRefreshToken(getUser?._id)
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax', maxAge: 24 * 60 * 60 * 1000
@@ -286,8 +289,10 @@ const refreshToken = async (req, res) => {
             the help of that id */
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
 
-        //step2 :Generate new acess token
-        const newAccessToken = generateAccessToken(decoded?.id)
+        //step2 :Generate new access token
+        // Note: refresh tokens don't carry role, so fetch user to get current role
+        const refreshUser = await userModel.findById(decoded?.id).select('role');
+        const newAccessToken = generateAccessToken(decoded?.id, refreshUser?.role)
 
         return res.status(200).json({
             success: true,
