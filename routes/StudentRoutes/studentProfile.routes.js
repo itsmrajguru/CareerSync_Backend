@@ -3,7 +3,7 @@ const studentProfileRouter=express.Router()
 const multer = require('multer');
 
 
-const { protect } = require('../../middleware/authMiddleware');
+const { protect } = require('../../middleware/authMiddleware/auth.middleware');
 const { createProfile, getProfiles, getMyProfile, getProfileById, updateMyProfile, deleteMyProfile } = require('../../controllers/StudentControllers/studentProfileController');
 const resumeController = require('../../controllers/StudentControllers/resumeController');
 const upload = multer({ storage: multer.memoryStorage() });
