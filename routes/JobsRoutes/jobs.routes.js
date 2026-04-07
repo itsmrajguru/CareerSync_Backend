@@ -9,14 +9,16 @@ const { getJobApplicants } = require('../../controllers/ApplicationControllers/a
 //Job Routes (/api/v1/jobs/)
 
 // public routes — no auth needed
-jobsRouter.get('/', getAllJobs);    // students browse all open jobs
-jobsRouter.get('/:id', getJobById); // students view a single job detail
+jobsRouter.get('/', getAllJobs);                                            // students browse all open jobs
 
-// company routes — auth + role required
-jobsRouter.post('/', protect, isCompany, createJob);    // company creates a job
-jobsRouter.get('/mine', protect, isCompany, getMyJobs);  // company sees their own posted jobs
-jobsRouter.put('/:id', protect, isCompany, updateJob);     // company edits their job
-jobsRouter.delete('/:id', protect, isCompany, deleteJob); // company deletes their job
-jobsRouter.get('/:id/applicants', protect, isCompany, getJobApplicants); // company sees who applied
+// company routes — static paths first
+jobsRouter.post('/', protect, isCompany, createJob);                       // company creates a job
+jobsRouter.get('/mine', protect, isCompany, getMyJobs);                    // company sees their own posted jobs
+
+// dynamic /:id routes — must come AFTER all static routes
+jobsRouter.get('/:id', getJobById);                                        // students view a single job detail
+jobsRouter.put('/:id', protect, isCompany, updateJob);                     // company edits their job
+jobsRouter.delete('/:id', protect, isCompany, deleteJob);                  // company deletes their job
+jobsRouter.get('/:id/applicants', protect, isCompany, getJobApplicants);   // company sees who applied
 
 module.exports = { jobsRouter };
