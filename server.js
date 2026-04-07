@@ -55,17 +55,22 @@ connectDB()
 
 
 //routes
-const { authRouter } = require('./routes/auth.routes')
-const { jobsRouter } = require('./routes/jobs.routes')
-const { userProfileRouter } = require('./routes/userProfile.routes')
-const { resumeUploadRouter } = require('./routes/resumeUpload.routes')
-app.use('/api/auth', authRouter)
-app.use('/api/jobs', jobsRouter)
-app.use('/api/userProfile', userProfileRouter)
-app.use('/api/resumeUpload', resumeUploadRouter)
+const { authRouter } = require('./routes/AuthRoutes/auth.routes')
+const { studentProfileRouter } = require('./routes/StudentRoutes/studentProfile.routes')
+const { companyProfileRouter } = require('./routes/CompanyRoutes/companyProfile.routes')
+const { jobsRouter } = require('./routes/JobsRoutes/jobs.routes')
+const { externalJobsRouter } = require('./routes/JobsRoutes/externalJobs.routes')
+const { applicationRouter } = require('./routes/ApplicationRoutes/application.routes')
+
+app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/students', studentProfileRouter)
+app.use('/api/v1/companies', companyProfileRouter)
+app.use('/api/v1/jobs', jobsRouter)
+app.use('/api/v1/external-jobs', externalJobsRouter)
+app.use('/api/v1/applications', applicationRouter)
 
 app.get('/', (req, res) => {
-    res.send("<h1><b><strong>Hey Welcome to Carrer-Sync Platform</strong></b></h1>")
+    res.send("<h1><b><strong>CarrerSync Platform's Backedn is running...</strong></b></h1>")
 })
 
 const PORT = process.env.PORT || 8000
