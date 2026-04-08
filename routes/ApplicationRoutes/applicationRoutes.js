@@ -1,15 +1,19 @@
 const express = require('express');
 const applicationRouter = express.Router();
 
-
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
-const { getJobApplicants, updateApplicantStatus, applyToJob, getMyApplications } = require('../../controllers/ApplicationControllers/applicationController');
+const { getJobApplicants, updateApplicantStatus, applyToJob, getMyApplications, getCompanyStats, getApplicationDetails } = require('../../controllers/ApplicationControllers/applicationController');
 
-//Application Routes
+//Application Routes (/api/v1/applications/)
 
-applicationRouter.post('/:jobId', protect, applyToJob);      // student applies to a job
+// Static routes 
 applicationRouter.get('/mine', protect, getMyApplications);  // student sees all their applications
-applicationRouter.patch('/:id/status', protect, isCompany, updateApplicantStatus); // company updates one application status
+applicationRouter.get('/company-stats', protect, isCompany, getCompanyStats);  // company dashboard: recent applicants + pipeline counts
+
+// Dynamic routes
+applicationRouter.post('/:jobId', protect, applyToJob);      // student applies to a job
+applicationRouter.get('/:id/detail', protect, isCompany, getApplicationDetails); // company views specific application
+applicationRouter.patch('/:id/status', protect, isCompany, updateApplicantStatus);  // company updates one application status
 
 module.exports = { applicationRouter };

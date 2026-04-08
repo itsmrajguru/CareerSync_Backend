@@ -1,6 +1,7 @@
 const Application = require('../../models/ApplicationModels/ApplicationModel');
 const Job = require('../../models/JobModels/JobModel');
 const CompanyProfile = require('../../models/companyModels/CompanyProfileModel');
+const StudentProfile = require('../../models/studentModels/StudentProfileModel');
 const { sendEmail } = require('../../services/emailService');
 
 
@@ -76,7 +77,7 @@ const getMyApplications = async (req, res) => {
 /* this function is written for the company to provide 
     them all jobApplications of a specific job*/
 
-    /* NOTE: This controller has been called in the jobroutes */
+/* NOTE: This controller has been called in the jobroutes */
 const getJobApplicants = async (req, res) => {
     try {
         // extract the companyId first 
@@ -183,5 +184,83 @@ const updateApplicantStatus = async (req, res) => {
 }
 
 
+/* function for getCompnayStats to power the company dashboard
+-->This function is used to return all the dynamic data that the company
+ dashboard page is showing
+ 
+    a) the last 10 applicants across all company jobs
+    b) stats:count of applied,shortilisted,rejected,hired for pipeline chart */
 
-module.exports = { getJobApplicants, updateApplicantStatus, applyToJob, getMyApplications };
+/* LOGIC : */
+const getCompanyStats = async (req, res) => {
+    try {
+        const company = await CompanyProfile.findOne({ user: req.user.id });
+        if (!company) return res.status(404).json({ success: false, message: 'Company profile not found' });
+
+        // Recent applicants across all this company's jobs
+        const recentApplications = await Application.find({ company: company._id })
+            .populate('student', 'username email')
+            .populate('job', 'title location')
+            .sort({ appliedAt: -1 })
+            .limit(10);
+
+        // Aggregate pipeline counts by status: applied, shortlisted, rejected, hired
+        const statusGroups = await Application.aggregate([
+            { $match: { company: company._id } },
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+        ]);
+
+        const stats = { applied: 0, shortlisted: 0, rejected: 0, hired: 0 };
+        statusGroups.forEach(s => {
+            if (Object.prototype.hasOwnProperty.call(stats, s._id)) stats[s._id] = s.count;
+        });
+
+        return res.status(200).json({ success: true, recentApplications, stats });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+};
+
+/* This function is created for the company to get the details 
+of the applicant for a particular job post */
+
+
+const getApplicationDetails = async (req, res) => {
+    try {
+        /* step 1: get the company */
+        const company = await CompanyProfile.findOne({ user: req.user.id });
+        if (!company)
+            return res.status(404).json({
+                success: false,
+                message: 'Company profile not found'
+            });
+
+        /*step 2: get the application to get details of the student*/
+        const application = await Application.findOne({ _id: req.params.id, company: company._id })
+            .populate('job', 'title location jobType')
+            .populate('student', 'username email');
+
+        if (!application) {
+            return res.status(404).json({
+                success: false,
+                message: 'Application not found'
+            });
+        }
+
+        // also fetch the student's full profile (skills, about, portfolio)
+        const studentProfile = await StudentProfile.findOne({ user: application.student._id });
+
+        return res.status(200).json({
+            success: true,
+            application,
+            studentProfile
+        });
+    } catch (e) {
+        res.status(500).json({
+            success: false,
+            message: e.message
+        });
+    }
+};
+
+module.exports = { getJobApplicants, updateApplicantStatus, applyToJob, getMyApplications, getCompanyStats, getApplicationDetails };
