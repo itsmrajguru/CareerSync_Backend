@@ -448,11 +448,63 @@ const resetPassword = async (req, res) => {
         }
     }
 }
+
+
+/*Function for changePassword feature in the settings:*/
+
+/* LOGIC : First get the saved password of the user from the database
+        and compare with the cureent password, if dont match return error
+        otherwise replace the currentPassword with the new Password*/
+const changePassword = async (req, res) => {
+    /*step 0 :extract the currentPassword and new Password from req.body*/
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword || newPassword.length < 6) {
+        return res.status(400).json({
+            success: false,
+            message: 'Provide current password and a new password (min 6 chars).'
+        })
+    }
+    try {
+        /*step 1 :First get the passwordof the user from the database */
+        const user = await userModel.findById(req.user.id).select('+password')
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not found.'
+            })
+        }
+        /*step 2 :otherwise compare the saved Password and currentPassword */
+        const match = await await bcrypt.compare(currentPassword, user.password);
+        if (!match) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect.'
+            });
+        }
+
+        /*step 3: update the saved password with the new password */
+        user.password = await bcrypt.hash(newPassword, 12)
+        await user.save();
+
+        /* step 4 :return success signal */
+        return res.json({
+            success: true,
+            message: 'Password changed successfully.'
+        });
+    } catch (e) {
+        console.error('changePassword error:', e);
+        return res.status(500).json({
+            success: false,
+            message: 'Something went wrong.'
+        });
+    }
+};
 module.exports = {
     signup,
     verifySignupOtp,
     login,
     refreshToken,
     resetPassword,
-    forgotPassword
+    forgotPassword,
+    changePassword,
 }
