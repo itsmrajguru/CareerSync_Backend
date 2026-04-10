@@ -185,7 +185,7 @@ POST /api/auth/verify-otp
 ## 🤝 Related
 
 - **Frontend:** [CareerSync Frontend](https://github.com/itsmrajguru/CareerSync_Frontend)
-- **Live App:** [careersyncplatform.netlify.app]()
+- **Live App:** [https://careersyncc.netlify.app/]()
 
 ---
 
