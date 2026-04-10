@@ -67,21 +67,11 @@ const applicationSchema = new mongoose.Schema({
     appliedAt: {
         type: Date,
         default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
     }
-});
+}, { timestamps: true });
 
 // Prevents duplicate applications from the same student for the same job
 applicationSchema.index({ student: 1, job: 1 }, { unique: true });
-
-// Auto-update updatedAt on every save
-applicationSchema.pre('save', function(next) {
-    this.updatedAt = new Date();
-    next();
-});
 
 const applicationModel = mongoose.model('Application', applicationSchema);
 module.exports = applicationModel;

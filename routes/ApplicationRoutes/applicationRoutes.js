@@ -12,7 +12,7 @@ applicationRouter.get('/mine', protect, getMyApplications);  // student sees all
 applicationRouter.get('/company-stats', protect, isCompany, getCompanyStats);  // company dashboard: recent applicants + pipeline counts
 
 // Dynamic routes
-applicationRouter.post('/:jobId', protect, applyToJob);      // student applies to a job
+applicationRouter.post('/:jobId', protect, applyToJob); //called by the applyPage...(student) applies to a job
 applicationRouter.get('/:id/detail', protect, isCompany, getApplicationDetails); // company views specific application
 applicationRouter.patch('/:id/status', protect, isCompany, updateApplicantStatus);  // company updates one application status
 

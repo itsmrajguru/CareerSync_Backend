@@ -68,13 +68,8 @@ const jobSchema = new mongoose.Schema({
     views: {
         type: Number,
         default: 0
-    },
-
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
-});
+}, { timestamps: true });
 
 const jobModel = mongoose.model('Job', jobSchema);
 module.exports = jobModel;
