@@ -32,11 +32,15 @@ const applyToJob = async (req, res) => {
                 success: false,
                 message: 'Already applied to this job'
             });
-        /*b) otherwise creeate a NewEntry in the ApppicationModel */
+        /*b) otherwise create a NewEntry in the ApplicationModel */
+        const { resumeUrl, coverNote } = req.body;
+        
         const application = await Application.create({
             job: jobId,
             student: req.user.id,
-            company: job.company
+            company: job.company,
+            resumeUrl: resumeUrl || '',
+            coverNote: coverNote || ''
         });
 
         res.status(201).json({
