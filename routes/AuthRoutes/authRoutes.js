@@ -13,6 +13,7 @@ authRouter.post('/token/refresh', authController.refreshToken);
 authRouter.post('/forgot-password', authController.forgotPassword);
 authRouter.post('/reset-password', authController.resetPassword);
 authRouter.post('/change-password', protect, authController.changePassword);
+authRouter.delete('/delete-me', protect, authController.deleteMe);
 authRouter.post('/logout', (req, res) => res.json({ success: true, message: 'Logged out' }));
 
 module.exports={authRouter}

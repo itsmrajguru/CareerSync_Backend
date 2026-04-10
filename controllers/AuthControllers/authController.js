@@ -225,7 +225,7 @@ const login = async (req, res) => {
     else {
         try {
             // step 1: verify whether the emailId is registered or not
-            const getUser = await userModel.findOne({ email })
+            const getUser = await userModel.findOne({ email: email.trim().toLowerCase() })
             if (!getUser) return res.status(400).json({ success: false, message: 'Incorrect Email' });
 
             // step 2: bcrypt the password
@@ -332,7 +332,8 @@ const forgotPassword = async (req, res) => {
     else {
         try {
             //step 1 :Validate the email,whether registered or not ?
-            const getUser = await userModel.findOne({ email, })
+            const normalizedEmail = email.trim().toLowerCase();
+            const getUser = await userModel.findOne({ email: normalizedEmail })
 
             // Even If , user is not registerd ,stilll show 200
             if (!getUser) {
@@ -356,7 +357,7 @@ const forgotPassword = async (req, res) => {
             await getUser.save()
 
             //step 3:Inject the reset Token in the resetURL
-            const resetURL = `${process.env.CLIENT_URL || 'https://careersyncplatform.netlify.app'}/reset-password?token=${resetToken}`
+            const resetURL = `${process.env.CLIENT_URL || 'CLIENT_URL=http://localhost:5173'}/reset-password?token=${resetToken}`
 
             //Step 4 :generate a message
             const msg = `You requested a password reset.\n\nReset your password here (valid 15 mins):\n\n${resetURL}\n\nIgnore this email if you didn't request it.`
@@ -413,8 +414,13 @@ const resetPassword = async (req, res) => {
     }
     else {
         try {
+            if (!token) {
+                return res.status(400).json({ success: false, message: 'Token is required.' });
+            }
+
             // Fixed: Hash the incoming token before searching the DB
-            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+            // Added .trim() to handle potential whitespace from copy-paste
+            const hashedToken = crypto.createHash('sha256').update(token.trim()).digest('hex');
 
             //validate token
             const getUser = await userModel.findOne({
@@ -474,7 +480,7 @@ const changePassword = async (req, res) => {
             })
         }
         /*step 2 :otherwise compare the saved Password and currentPassword */
-        const match = await await bcrypt.compare(currentPassword, user.password);
+        const match = await bcrypt.compare(currentPassword, user.password);
         if (!match) {
             return res.status(401).json({
                 success: false,
@@ -483,7 +489,8 @@ const changePassword = async (req, res) => {
         }
 
         /*step 3: update the saved password with the new password */
-        user.password = await bcrypt.hash(newPassword, 12)
+        // Note: pre('save') hook in UserModel will handle hashing.
+        user.password = newPassword;
         await user.save();
 
         /* step 4 :return success signal */
@@ -499,6 +506,45 @@ const changePassword = async (req, res) => {
         });
     }
 };
+
+
+/*Function for deleteuser feature in the settings:*/
+
+const deleteMe = async (req, res) => {
+    try {
+        /* step 1 :extract the user from the authemeticated user.id
+        taken from req.user.id*/
+        const userId = req.user.id;
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+        // Delete user prfile based on the role
+        if (user.role === 'student') {
+            await profileModel.findOneAndDelete({ user: userId });
+        } else if (user.role === 'company') {
+            await companyModel.findOneAndDelete({ user: userId });
+        }
+        // Delete User
+        await userModel.findByIdAndDelete(userId);
+        // Clear refresh token cookie if exists
+        res.clearCookie('refreshToken');
+        return res.status(200).json({
+            success: true,
+            message: 'Account deleted successfully'
+        });
+    } catch (e) {
+        console.error('deleteMe error:', e);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to delete account'
+        });
+    }
+};
+
 module.exports = {
     signup,
     verifySignupOtp,
@@ -507,4 +553,5 @@ module.exports = {
     resetPassword,
     forgotPassword,
     changePassword,
+    deleteMe,
 }
