@@ -59,6 +59,7 @@ const { companyProfileRouter } = require('./routes/CompanyRoutes/companyProfileR
 const { jobsRouter } = require('./routes/JobsRoutes/jobs.routes')
 const { externalJobsRouter } = require('./routes/JobsRoutes/externalJobsRoutes')
 const { applicationRouter } = require('./routes/ApplicationRoutes/applicationRoutes')
+const { adminRouter } = require('./routes/AdminRoutes/adminRoutes')
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/students', studentProfileRouter)
@@ -66,6 +67,7 @@ app.use('/api/v1/companies', companyProfileRouter)
 app.use('/api/v1/jobs', jobsRouter)
 app.use('/api/v1/external-jobs', externalJobsRouter)
 app.use('/api/v1/applications', applicationRouter)
+app.use('/api/v1/admin', adminRouter)
 
 app.get('/', (req, res) => {
     res.send("<h1><b><strong>CarrerSync Platform's Backend is running...</strong></b></h1>")
