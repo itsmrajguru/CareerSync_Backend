@@ -17,22 +17,29 @@ const formatProfile = (profile) => {
     delete p.__v;
 
     if (p.user) {
-        p.user.id = p.user._id;
-        delete p.user._id;
+        if (p.user._id) {
+            p.user.id = p.user._id;
+            delete p.user._id;
+        }
     }
 
     return p;
 };
 
-// Craete a student profile
+// Create or Upsert a student profile
 const createProfile = async (req, res) => {
     try {
         /* This creates a new model with user data */
-        const profile = await profileModel.create({
-            ...req.body,       //this attches the incoming payload from req.body
-            user: req.user.id  //this attaches the user id with the data
-        });
-
+        /* This uses findOneAndUpdate with upsert: true to safely handle
+           both creation and accidental duplicate creation attempts */
+        const profile = await profileModel.findOneAndUpdate(
+            { user: req.user.id },
+            { 
+               ...req.body,       //this attches the incoming payload from req.body
+               user: req.user.id  //this attaches the user id with the data
+            },
+            { new: true, upsert: true, runValidators: true }
+        ).populate('user', 'username email');
 
         /* Before populate
         user: "64abc123"
@@ -45,10 +52,9 @@ const createProfile = async (req, res) => {
         }
         */
         /* In short we are merging extra info along with existing userId*/
-        const populated = await profile.populate('user', 'username email');
 
         /* this formats the data */
-        res.status(201).json(formatProfile(populated));  //this runs the formatProfile function
+        res.status(201).json(formatProfile(profile));  //this runs the formatProfile function
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
