@@ -1,4 +1,4 @@
-const CompanyProfile = require('../../models/companyModels/CompanyProfileModel');
+const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
 
 /* lets create a function for the company to return their own profile 
    for this, frontend axios calls /api/v1/companies/me

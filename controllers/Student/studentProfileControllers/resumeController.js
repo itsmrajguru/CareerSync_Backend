@@ -1,4 +1,4 @@
-const { extractTextFromPDF, analyzeResume } = require('../../services/resumeService');
+const { extractTextFromPDF, analyzeResume } = require('../../../services/resumeService');
 
 const uploadResume = async (req, res) => {
     try {

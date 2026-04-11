@@ -3,8 +3,9 @@ const jobsRouter = express.Router();
 
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
-const { createJob, getMyJobs, getJobById, getAllJobs, updateJob, deleteJob } = require('../../controllers/JobControllers/jobController');
-const { getJobApplicants } = require('../../controllers/ApplicationControllers/applicationController');
+const { getAllJobs, getJobById } = require('../../controllers/Student/studentJobControllers');
+const { createJob, getMyJobs, updateJob, deleteJob, getJobApplicants } = require('../../controllers/Company/companyJobControllers');
+
 
 //Job Routes (/api/v1/jobs/)
 

@@ -93,9 +93,9 @@ const getAllJobsAdmin = async (req, res) => {
     }
 };
 
-module.exports = { 
-    getPlatformStats, 
-    getAllCompanies, 
-    verifyCompany, 
-    getAllJobsAdmin 
+module.exports = {
+    getPlatformStats,
+    getAllCompanies,
+    verifyCompany,
+    getAllJobsAdmin
 };

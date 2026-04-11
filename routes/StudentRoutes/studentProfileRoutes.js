@@ -4,8 +4,8 @@ const multer = require('multer');
 
 
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { createProfile, getProfiles, getMyProfile, getProfileById, updateMyProfile, deleteMyProfile } = require('../../controllers/StudentControllers/studentProfileController');
-const resumeController = require('../../controllers/StudentControllers/resumeController');
+const { createProfile, getProfiles, getMyProfile, getProfileById, updateMyProfile, deleteMyProfile } = require('../../controllers/StudentControllers/studentProfileControllers/studentProfileController');
+const resumeController = require('../../controllers/StudentControllers/studentProfileControllers/resumeController');
 const upload = multer({ storage: multer.memoryStorage() });
 
 
