@@ -2,7 +2,8 @@ const express=require('express')
 const authRouter=express.Router()
 
 //importing controller and middleware
-const authController = require('../../controllers/AuthControllers/authController');
+const authController = require('../../controllers/Auth/authController');
+
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
 
 // User Authentication Routes

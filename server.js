@@ -26,8 +26,11 @@ const allowedOrigins = [
     "https://careersyncplatform.vercel.app",
     "https://careersyncc.netlify.app",
     "http://localhost:5173",
-    "http://127.0.0.1:5173"
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174"
 ].filter(Boolean);
+
 
 app.use(cors({
     origin: function (origin, callback) {

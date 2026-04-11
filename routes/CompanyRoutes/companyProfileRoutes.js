@@ -1,7 +1,8 @@
 const express=require('express')
 const companyProfileRouter=express.Router()
 
-const{getMyCompanyProfile, updateCompanyProfile, getCompanyById } = require('../../controllers/CompanyControllers/companyProfileController')
+const{getMyCompanyProfile, updateCompanyProfile, getCompanyById } = require('../../controllers/Company/companyProfileControllers/companyProfileController')
+
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
 

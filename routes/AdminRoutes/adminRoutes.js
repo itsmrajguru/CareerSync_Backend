@@ -5,7 +5,8 @@ const {
     getAllCompanies, 
     verifyCompany, 
     getAllJobsAdmin 
-} = require('../../controllers/AdminControllers/adminController');
+} = require('../../controllers/Admin/adminController');
+
 const { protect } = require('../../middleware/authMiddleware/authMiddleware');
 const { isAdmin } = require('../../middleware/roleMiddleware/roleMiddleware');
 
