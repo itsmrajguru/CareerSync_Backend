@@ -21,6 +21,12 @@ const profileSchema = new mongoose.Schema({
     work: { type: String, default: '' },
     education: { type: String, default: '' },
     skills: { type: String, default: '' },
+    // change 3 :Added a savedJobs Fields to store the saved jobs
+    savedJobs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
+    }]
+
 })
 
 //creating a profileModel
