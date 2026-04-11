@@ -48,6 +48,12 @@ const applyToJob = async (req, res) => {
             application
         });
     } catch (e) {
+        if (e.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'You have already applied to this job.'
+            });
+        }
         res.status(500).json({
             success: false,
             message: e.message
