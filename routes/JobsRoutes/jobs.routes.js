@@ -17,10 +17,12 @@ jobsRouter.get('/', getAllJobs);  // called by JobsPage... (students) browse all
 jobsRouter.post('/', protect, isCompany, createJob);                     // company creates a job
 jobsRouter.get('/mine', protect, isCompany, getMyJobs); //called by the CompanyJobsPage...(company) sees their own posted jobs
 
+// student routes — static paths first
+jobsRouter.get('/saved/all', protect, getSavedJobs); //called by the ApplicationsPage...(Student) gets all saved jobs
+
 // dynamic /:id routes — must come AFTER all static routes
 jobsRouter.get('/:id', getJobById); // called by JobDetails Page...(students) view a single job detail
 jobsRouter.post('/:jobId/save', protect, toggleSaveJob); //called by the jobsPage...(student) saves/unsaves a job
-jobsRouter.get('/saved/all', protect, getSavedJobs); //called by the ApplicationsPage...(Student) gets all saved jobs
 jobsRouter.put('/:id', protect, isCompany, updateJob);                     // company edits their job
 
 jobsRouter.delete('/:id', protect, isCompany, deleteJob);                     // company deletes their job
