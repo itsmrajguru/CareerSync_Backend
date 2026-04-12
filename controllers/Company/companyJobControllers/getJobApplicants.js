@@ -17,7 +17,7 @@ const getJobApplicants = async (req, res) => {
             });
 
         // then extract the jobId
-        const { jobId } = req.params;
+        const jobId = req.params.id;
         const job = await Job.findOne({ _id: jobId, company: company._id });
         if (!job) return res.status(404).json({
             success: false,

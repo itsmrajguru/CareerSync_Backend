@@ -39,6 +39,10 @@ const applyToJob = async (req, res) => {
             coverNote: coverNote || ''
         });
 
+        // Increment the applicationsCount field on the job document
+        job.applicationsCount = (job.applicationsCount || 0) + 1;
+        await job.save();
+
         res.status(201).json({
             success: true,
             application
