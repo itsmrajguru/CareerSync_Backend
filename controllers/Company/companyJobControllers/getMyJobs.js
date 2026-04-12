@@ -2,27 +2,25 @@ const Job = require('../../../models/JobModels/JobModel');
 const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
 const Application = require('../../../models/ApplicationModels/ApplicationModel');
 
-/* function to get the jobs posted by the company
-   logic: 1) verify the company first
-          2) search for the jobs in the jobmodel using the companyId
-          3) calculate the number of applicants for every job in real-time */
+/* function to show the jobs for the company,posted by the company
+logic:    1) get the company Id to fetch the jobs accodingly
+          2) serach the jobs in the jobModel on the basis of
+             the company and sort it 
+          3) Calulate number of aplplicants for every indivisual job  */
 const getMyJobs = async (req, res) => {
     try {
-        // extract the companyId from req.user.id
+        /* step 1 :get the company first so that we could show the
+        jobs of that company only */
         const company = await CompanyProfile.findOne({ user: req.user.id });
-        if (!company) {
-            return res.status(404).json({ success: false, message: 'Company profile not found' });
-        }
         
-        // using .lean() to get plain JS objects instead of Mongoose documents
-        const rawJobs = await Job.find({ company: company._id }).sort({ createdAt: -1 }).lean();
-
-        /* logic: for every job, we count how many applications exist
-           we use Promise.all to do this efficiently */
+        /* step 2 : get the jobs depending upon the company*/
+        const rawJobs = await Job.find({ company: company._id }).sort({ createdAt: -1 });
+        
+        /* step 3 :get the applicants of the job...*/
         const jobs = await Promise.all(rawJobs.map(async (job) => {
             const count = await Application.countDocuments({ job: job._id });
             return {
-                ...job,
+                ...job._doc,
                 applicationsCount: count
             };
         }));
