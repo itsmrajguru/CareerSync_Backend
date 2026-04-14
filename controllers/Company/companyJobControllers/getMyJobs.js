@@ -1,6 +1,6 @@
-const Job = require('../../../models/JobModels/JobModel');
-const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
+const Job = require('../../../models/JobModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
+const Application = require('../../../models/ApplicationModel');
 
 /* function to show the jobs for the company,posted by the company
 logic:    1) get the company Id to fetch the jobs accodingly

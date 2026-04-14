@@ -1,5 +1,7 @@
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
-const Job = require('../../../models/JobModels/JobModel');
+const Application = require('../../../models/ApplicationModel');
+const Job = require('../../../models/JobModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
+const { createNotification } = require('../../../utils/notificationHelper');
 
 // This fuction is written for the student to apply for the job posted by company
 const applyToJob = async (req, res) => {
@@ -39,9 +41,22 @@ const applyToJob = async (req, res) => {
             coverNote: coverNote || ''
         });
 
-        // Increment the applicationsCount field on the job document
         job.applicationsCount = (job.applicationsCount || 0) + 1;
         await job.save();
+
+        // Trigger Notification to Company
+        // job.company = CompanyProfile._id, so we look up CompanyProfile.user to get the User._id
+        const companyProfile = await CompanyProfile.findById(job.company).select('user');
+        if (companyProfile?.user) {
+            createNotification({
+                recipient: companyProfile.user, // User._id of the company owner
+                sender: req.user.id,            // User._id of the student
+                type: 'new_application',
+                title: 'New Applicant Received',
+                message: `A new student has applied for your "${job.title}" position.`,
+                link: `/company/jobs/${jobId}/applicants`
+            });
+        }
 
         res.status(201).json({
             success: true,

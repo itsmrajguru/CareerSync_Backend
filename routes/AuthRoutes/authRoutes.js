@@ -4,8 +4,8 @@ const authRouter=express.Router()
 //importing controller and middleware
 const authController = require('../../controllers/Auth/authController');
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { authRateLimiter } = require('../../middleware/rateLimiter/authRateLimiter');
+const { protect } = require('../../middleware/authMiddleware');
+const { authRateLimiter } = require('../../middleware/authRateLimiter');
 
 // User Authentication Routes
 authRouter.post('/signup', authRateLimiter, authController.signup);

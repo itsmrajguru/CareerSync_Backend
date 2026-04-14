@@ -1,6 +1,6 @@
-// const Profile = require('../../../models/studentModels/StudentProfileModel');
+// const Profile = require('../../../models/StudentProfileModel');
 
-const Profile = require('../../../models/studentModels/StudentProfileModel');
+const Profile = require('../../../models/StudentProfileModel');
 
 /* function for save and unsave a job to show in the saved jobs
 Logic :1) get the jobId from params

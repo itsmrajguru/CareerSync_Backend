@@ -1,5 +1,5 @@
-const Job = require('../../../models/JobModels/JobModel');
-const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
+const Job = require('../../../models/JobModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
 
 /* function to create a job by the company
 logic : 1)verify the company first

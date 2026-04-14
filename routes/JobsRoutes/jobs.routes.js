@@ -1,8 +1,8 @@
 const express = require('express');
 const jobsRouter = express.Router();
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
+const { isCompany } = require('../../middleware/roleMiddleware');
 const { getAllJobs, getJobById, toggleSaveJob, getSavedJobs } = require('../../controllers/Student/studentJobControllers');
 
 const { createJob, getMyJobs, updateJob, deleteJob, getJobApplicants } = require('../../controllers/Company/companyJobControllers');

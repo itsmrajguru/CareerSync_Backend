@@ -1,6 +1,6 @@
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
-const Job = require('../../../models/JobModels/JobModel');
-const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
+const Application = require('../../../models/ApplicationModel');
+const Job = require('../../../models/JobModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
 
 /* this function is written for the company to provide 
     them all jobApplications of a specific job*/

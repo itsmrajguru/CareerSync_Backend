@@ -1,4 +1,4 @@
-const Profile = require('../../../models/studentModels/StudentProfileModel');
+const Profile = require('../../../models/StudentProfileModel');
 
 /* function to fetch the saved jobs and display 
 logic :1) fetch the profile of the student 

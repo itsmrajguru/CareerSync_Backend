@@ -1,5 +1,5 @@
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
-const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
+const Application = require('../../../models/ApplicationModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
 
 /* function for getCompnayStats to power the company dashboard
 -->This function is used to return all the dynamic data that the company

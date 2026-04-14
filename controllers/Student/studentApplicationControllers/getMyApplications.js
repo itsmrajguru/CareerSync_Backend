@@ -1,4 +1,4 @@
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
+const Application = require('../../../models/ApplicationModel');
 
 // This function is made for the student to fetch his all applictaions
 const getMyApplications = async (req, res) => {

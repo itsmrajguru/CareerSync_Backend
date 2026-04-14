@@ -1,6 +1,6 @@
-const Application = require('../../../models/ApplicationModels/ApplicationModel');
-const CompanyProfile = require('../../../models/companyModels/CompanyProfileModel');
-const StudentProfile = require('../../../models/studentModels/StudentProfileModel');
+const Application = require('../../../models/ApplicationModel');
+const CompanyProfile = require('../../../models/CompanyProfileModel');
+const StudentProfile = require('../../../models/StudentProfileModel');
 
 /* This function is created for the company to get the details 
 of the applicant for a particular job post */

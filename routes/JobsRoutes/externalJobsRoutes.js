@@ -1,7 +1,7 @@
 const express = require('express')
 const externalJobsRouter = express.Router()
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
 const { externalJobController } = require('../../controllers/Student/studentJobControllers');
 const { getJobs } = externalJobController;
 

@@ -7,8 +7,8 @@ const {
     getAllJobsAdmin 
 } = require('../../controllers/Admin/adminController');
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { isAdmin } = require('../../middleware/roleMiddleware/roleMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
+const { isAdmin } = require('../../middleware/roleMiddleware');
 
 /* admin routes...
 all routes are protected and restricted to admin role only */

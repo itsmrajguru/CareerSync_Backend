@@ -3,7 +3,7 @@ const studentProfileRouter=express.Router()
 const multer = require('multer');
 
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
 const { createProfile, getProfiles, getMyProfile, getProfileById, updateMyProfile, deleteMyProfile } = require('../../controllers/Student/studentProfileControllers/studentProfileController');
 
 const resumeController = require('../../controllers/Student/studentProfileControllers/resumeController');

@@ -1,8 +1,8 @@
 const express = require('express');
 const applicationRouter = express.Router();
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
+const { isCompany } = require('../../middleware/roleMiddleware');
 const { applyToJob, getMyApplications } = require('../../controllers/Student/studentApplicationControllers');
 const { updateApplicantStatus, getCompanyStats, getApplicationDetails } = require('../../controllers/Company/companyApplicationControllers');
 

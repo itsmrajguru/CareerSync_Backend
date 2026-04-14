@@ -1,7 +1,7 @@
 const User = require('../../models/AuthModels/UserModel');
-const Company = require('../../models/companyModels/CompanyProfileModel');
-const Job = require('../../models/JobModels/JobModel');
-const Application = require('../../models/ApplicationModels/ApplicationModel');
+const Company = require('../../models/CompanyProfileModel');
+const Job = require('../../models/JobModel');
+const Application = require('../../models/ApplicationModel');
 
 /* function to get all platform statistics for admin dashboard
 logic: 1) count total students, companies, and jobs

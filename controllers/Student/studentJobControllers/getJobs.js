@@ -1,4 +1,4 @@
-const Job = require('../../../models/JobModels/JobModel');
+const Job = require('../../../models/JobModel');
 
 /* function for the student to get the jobs posted  by the company
 logic : 1)take the query set by the filter panel , coming from req.query

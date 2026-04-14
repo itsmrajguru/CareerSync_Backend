@@ -1,4 +1,4 @@
-const Job = require('../../../models/JobModels/JobModel');
+const Job = require('../../../models/JobModel');
 
 /* function for the student to get the a single job posted  by the company
 logic : 1)take the jobID from req.params.id and pass it to search in the job model

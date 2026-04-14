@@ -3,8 +3,8 @@ const companyProfileRouter=express.Router()
 
 const{getMyCompanyProfile, updateCompanyProfile, getCompanyById } = require('../../controllers/Company/companyProfileControllers/companyProfileController')
 
-const { protect } = require('../../middleware/authMiddleware/authMiddleware');
-const { isCompany } = require('../../middleware/roleMiddleware/roleMiddleware');
+const { protect } = require('../../middleware/authMiddleware');
+const { isCompany } = require('../../middleware/roleMiddleware');
 
 // Company profile routes(/api/v1/companies/)
 
