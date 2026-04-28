@@ -2,24 +2,24 @@
 
 const mongoose = require('mongoose');
 
+/*
+Notification System Design:
+- Every user (student or company) has a single entry in UserModel.
+- Their profile details live in StudentProfileModel or CompanyProfileModel.
+- For notifications, we always use the UserModel _id as the recipient/sender.
+- We use req.user.id which is the UserModel._id from the JWT token.
+- We use the 'role' field on the User to determine who to notify.
+*/
+
 const notificationSchema = new mongoose.Schema({
     recipient: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
-        refPath: 'recipientModel'
-    },
-    recipientModel: {
-        type: String,
-        required: true,
-        enum: ['UserModel', 'CompanyModel']
+        ref: 'User'   // Always the UserModel — works for both students and companies
     },
     sender: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: 'senderModel'
-    },
-    senderModel: {
-        type: String,
-        enum: ['UserModel', 'CompanyModel']
+        ref: 'User'   // Always the UserModel — sender is also a User
     },
     type: {
         type: String,
@@ -40,11 +40,7 @@ const notificationSchema = new mongoose.Schema({
     isRead: {
         type: Boolean,
         default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('NotificationModel', notificationSchema);
+module.exports = mongoose.model('Notification', notificationSchema);
