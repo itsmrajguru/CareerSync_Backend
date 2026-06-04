@@ -216,7 +216,7 @@ const login = async (req, res) => {
     //validate the credenetials with joi.object
     const { error } = loginSchema.validate({ email, password })
 
-    if (error) {
+    if (error) {                                                                                                           
         return res.status(400).json({
             success: false,
             message: error.details[0].message
