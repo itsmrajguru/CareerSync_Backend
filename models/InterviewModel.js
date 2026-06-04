@@ -39,7 +39,7 @@ const interviewSchema = new mongoose.Schema({
     },
     mode: {
         type: String,
-        enum: ['online', 'in-person'],
+        enum: ['online', 'phone', 'in-person'],
         required: true
     },
     location: {

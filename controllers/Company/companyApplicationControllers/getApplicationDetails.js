@@ -1,6 +1,7 @@
 const Application = require('../../../models/ApplicationModel');
 const CompanyProfile = require('../../../models/CompanyProfileModel');
 const StudentProfile = require('../../../models/StudentProfileModel');
+const Interview = require('../../../models/InterviewModel');
 
 /* This function is created for the company to get the details 
 of the applicant for a particular job post */
@@ -30,10 +31,13 @@ const getApplicationDetails = async (req, res) => {
         // also fetch the student's full profile (skills, about, portfolio)
         const studentProfile = await StudentProfile.findOne({ user: application.student._id });
 
+        const interview = await Interview.findOne({ application: application._id, status: 'scheduled' });
+
         return res.status(200).json({
             success: true,
             application,
-            studentProfile
+            studentProfile,
+            interview: interview || null
         });
     } catch (e) {
         res.status(500).json({
