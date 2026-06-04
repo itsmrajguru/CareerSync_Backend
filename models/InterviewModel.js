@@ -30,7 +30,7 @@ const interviewSchema = new mongoose.Schema({
     },
     company: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'CompanyProfile',
+        ref: 'Company',
         required: true
     },
     scheduledAt: {

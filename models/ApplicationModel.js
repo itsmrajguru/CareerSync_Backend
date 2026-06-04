@@ -67,6 +67,13 @@ const applicationSchema = new mongoose.Schema({
     appliedAt: {
         type: Date,
         default: Date.now
+    },
+
+    /* change : Added a isSaved field to store whether the company has bookmarked this applicant 
+       This helps the company to save an applicant for later review */
+    isSaved: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 
@@ -74,4 +81,4 @@ const applicationSchema = new mongoose.Schema({
 applicationSchema.index({ student: 1, job: 1 }, { unique: true });
 
 const applicationModel = mongoose.model('Application', applicationSchema);
-module.exports = applicationModel;
+module.exports = applicationModel;;
