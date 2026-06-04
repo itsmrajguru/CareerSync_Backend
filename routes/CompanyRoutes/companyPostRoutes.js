@@ -18,7 +18,7 @@ const {
 const { protect } = require('../../middleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware');
 
-// posts routes
+/* all the post related routes */
 companyPostRouter.post('/', protect, isCompany, createPost);
 companyPostRouter.get('/feed', protect, getFeed);
 companyPostRouter.get('/company/:companyId', protect, getPostsByCompany);

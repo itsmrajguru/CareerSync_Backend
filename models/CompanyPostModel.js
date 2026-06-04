@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// company post schema
+/* this is the schema for the posts created by companies */
 const postSchema = new mongoose.Schema({
     company: {
         type: mongoose.Schema.Types.ObjectId,

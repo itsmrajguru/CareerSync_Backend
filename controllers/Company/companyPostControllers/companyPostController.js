@@ -4,7 +4,7 @@ const CompanyFollower = require('../../../models/CompanyFollowersModel');
 const Profile = require('../../../models/StudentProfileModel');
 const User = require('../../../models/AuthModels/UserModel');
 
-// create a new post (company only)
+/* this creates a new post for the company profile */
 const createPost = async (req, res) => {
     try {
         const { title, description, postType, image, video, externalLink } = req.body;
@@ -39,7 +39,7 @@ const createPost = async (req, res) => {
     }
 };
 
-// get all posts by specific company
+/* this function gets all the posts published by a specific company */
 const getPostsByCompany = async (req, res) => {
     try {
         const { companyId } = req.params;
@@ -60,7 +60,7 @@ const getPostsByCompany = async (req, res) => {
     }
 };
 
-// update post (company owner only)
+/* update an existing post if the company owns it */
 const updatePost = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -101,7 +101,7 @@ const updatePost = async (req, res) => {
     }
 };
 
-// delete post (company owner only)
+/* function to delete a post that belongs to this company */
 const deletePost = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -142,7 +142,7 @@ const deletePost = async (req, res) => {
     }
 };
 
-// like a post
+/* student likes a post using this function */
 const likePost = async (req, res) => {
     try {
         const { postId } = req.body;
@@ -180,7 +180,7 @@ const likePost = async (req, res) => {
     }
 };
 
-// unlike a post
+/* student unlikes a post */
 const unlikePost = async (req, res) => {
     try {
         const { postId } = req.body;
@@ -210,7 +210,7 @@ const unlikePost = async (req, res) => {
     }
 };
 
-// comment on a post
+/* student adds a comment on the company post */
 const commentOnPost = async (req, res) => {
     try {
         const { postId, text } = req.body;
@@ -250,7 +250,7 @@ const commentOnPost = async (req, res) => {
     }
 };
 
-// delete comment
+/* deleting a comment from a post */
 const deleteComment = async (req, res) => {
     try {
         const { postId, commentId } = req.body;
@@ -272,7 +272,7 @@ const deleteComment = async (req, res) => {
             });
         }
 
-        // check if user is the comment author or post author company
+        /* check if the user is the one who made the comment or the company that made the post */
         const company = await CompanyProfile.findOne({ user: userId });
         const isPostOwner = company && post.company.toString() === company._id.toString();
         const isCommentOwner = comment.user.toString() === userId;
@@ -300,7 +300,7 @@ const deleteComment = async (req, res) => {
     }
 };
 
-// save post
+/* so here a student can save a post to their profile */
 const savePost = async (req, res) => {
     try {
         const { postId } = req.body;
@@ -324,7 +324,7 @@ const savePost = async (req, res) => {
         profile.savedPosts.push(postId);
         await profile.save();
 
-        // track saves on post
+        /* keeping track of how many people saved the post */
         await CompanyPost.findByIdAndUpdate(postId, { $addToSet: { saves: userId } });
 
         res.status(200).json({
@@ -339,7 +339,7 @@ const savePost = async (req, res) => {
     }
 };
 
-// unsave post
+/* removing the saved post from student profile */
 const unsavePost = async (req, res) => {
     try {
         const { postId } = req.body;
@@ -356,7 +356,7 @@ const unsavePost = async (req, res) => {
         profile.savedPosts = profile.savedPosts.filter(id => id.toString() !== postId);
         await profile.save();
 
-        // remove save track on post
+        /* removing the track for saved post */
         await CompanyPost.findByIdAndUpdate(postId, { $pull: { saves: userId } });
 
         res.status(200).json({
@@ -371,17 +371,17 @@ const unsavePost = async (req, res) => {
     }
 };
 
-// get recommended feed
+/* fetching the recommended feed for a student */
 const getFeed = async (req, res) => {
     try {
         const studentId = req.user.id;
         const sortBy = req.query.sortBy || 'latest'; // latest, likes, comments, trending
 
-        // get followed companies
+        /* get the list of companies student already follows */
         const follows = await CompanyFollower.find({ studentId });
         const followedCompanyIds = follows.map(f => f.companyId);
 
-        // recommended companies by industry match
+        /* recommending the companies based on same industry */
         const studentProfile = await Profile.findOne({ user: studentId });
         const domain = studentProfile ? studentProfile.domain : '';
 
@@ -394,7 +394,7 @@ const getFeed = async (req, res) => {
             recommendedCompanyIds = recommendedCompanies.map(c => c._id);
         }
 
-        // trending companies (highest views)
+        /* picking up the trending companies with highest views */
         const trendingCompanies = await CompanyProfile.find({
             _id: { $nin: [...followedCompanyIds, ...recommendedCompanyIds] }
         }).sort({ views: -1 }).limit(10);
@@ -405,7 +405,7 @@ const getFeed = async (req, res) => {
             .populate('comments.user', 'username role')
             .lean();
 
-        // assign recommendation scores
+        /* scoring the posts so we can rank them */
         posts = posts.map(post => {
             let score = 0;
             const companyIdStr = post.company?._id?.toString();
@@ -422,7 +422,7 @@ const getFeed = async (req, res) => {
             const commentsCount = post.comments ? post.comments.length : 0;
             score += (likesCount * 2) + (commentsCount * 5);
 
-            // check if liked or saved by current student
+            /* check if this student has already liked or saved it */
             const isLiked = post.likes?.some(id => id.toString() === studentId) || false;
             const isSaved = post.saves?.some(id => id.toString() === studentId) || false;
 
@@ -436,7 +436,7 @@ const getFeed = async (req, res) => {
             };
         });
 
-        // sort
+        /* finally sort all the posts based on the requested filter */
         if (sortBy === 'latest') {
             posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         } else if (sortBy === 'likes') {

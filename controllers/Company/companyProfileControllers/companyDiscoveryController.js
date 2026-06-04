@@ -2,13 +2,13 @@ const CompanyProfile = require('../../../models/CompanyProfileModel');
 const CompanyFollower = require('../../../models/CompanyFollowersModel');
 const Job = require('../../../models/JobModel');
 
-// get all companies with search and filters
+/* this function fetches all companies with the search and filter params */
 const getAllCompanies = async (req, res) => {
     try {
         const { search, industry, location, companySize, hiringStatus } = req.query;
         let query = {};
 
-        // search by name, industry, or location
+        /* we apply the search query on name, industry or location fields */
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -17,7 +17,7 @@ const getAllCompanies = async (req, res) => {
             ];
         }
 
-        // exact filters
+        /* applying the exact filter on industry and location */
         if (industry) {
             query.industry = { $regex: industry, $options: 'i' };
         }
@@ -25,7 +25,7 @@ const getAllCompanies = async (req, res) => {
             query.location = { $regex: location, $options: 'i' };
         }
 
-        // employee count size ranges
+        /* checking the employee count based on size filter ranges */
         if (companySize) {
             if (companySize === '1-50') {
                 query.employeesCount = { $gte: 1, $lte: 50 };
@@ -38,7 +38,7 @@ const getAllCompanies = async (req, res) => {
             }
         }
 
-        // hiring status filter
+        /* finding the companies that have open jobs right now */
         if (hiringStatus) {
             const hiringCompanies = await Job.distinct('company', {
                 status: 'open',
@@ -57,7 +57,7 @@ const getAllCompanies = async (req, res) => {
 
         const companies = await CompanyProfile.find(query);
 
-        // add open jobs count and follow status for student
+        /* so we loop over the companies and get their open jobs count and if the student follows them */
         const result = await Promise.all(companies.map(async (c) => {
             const openJobsCount = await Job.countDocuments({
                 company: c._id,
@@ -93,7 +93,7 @@ const getAllCompanies = async (req, res) => {
     }
 };
 
-// get single company profile details
+/* function to fetch a single company profile details */
 const getCompanyProfileById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -106,11 +106,11 @@ const getCompanyProfileById = async (req, res) => {
             });
         }
 
-        // increase profile views
+        /* increasing the views count when someone opens the profile */
         company.views = (company.views || 0) + 1;
         await company.save();
 
-        // count open jobs
+        /* fetching the open jobs count for this specific company */
         const openJobsCount = await Job.countDocuments({
             company: company._id,
             status: 'open',
@@ -120,7 +120,7 @@ const getCompanyProfileById = async (req, res) => {
             ]
         });
 
-        // check if current student follows this company
+        /* check if the logged in student is following this company */
         let isFollowing = false;
         if (req.user) {
             const follow = await CompanyFollower.findOne({ studentId: req.user.id, companyId: company._id });
@@ -143,7 +143,7 @@ const getCompanyProfileById = async (req, res) => {
     }
 };
 
-// follow a company
+/* this function allows a student to follow a company */
 const followCompany = async (req, res) => {
     try {
         const { companyId } = req.body;
@@ -167,7 +167,7 @@ const followCompany = async (req, res) => {
 
         await CompanyFollower.create({ studentId, companyId });
 
-        // update cache count
+        /* updating the followers count cache on the company profile */
         company.followersCount = (company.followersCount || 0) + 1;
         await company.save();
 
@@ -183,7 +183,7 @@ const followCompany = async (req, res) => {
     }
 };
 
-// unfollow a company
+/* function to unfollow a company */
 const unfollowCompany = async (req, res) => {
     try {
         const { companyId } = req.body;
@@ -205,7 +205,7 @@ const unfollowCompany = async (req, res) => {
             });
         }
 
-        // update cache count
+        /* updating the followers count cache on the company profile */
         company.followersCount = Math.max(0, (company.followersCount || 0) - 1);
         await company.save();
 
@@ -221,7 +221,7 @@ const unfollowCompany = async (req, res) => {
     }
 };
 
-// get all followed companies
+/* fetching the list of all companies the student follows */
 const getFollowedCompanies = async (req, res) => {
     try {
         const studentId = req.user.id;
@@ -243,7 +243,7 @@ const getFollowedCompanies = async (req, res) => {
     }
 };
 
-// get jobs posted by specific company
+/* this fetches all open jobs posted by the company */
 const getCompanyJobs = async (req, res) => {
     try {
         const { id } = req.params;

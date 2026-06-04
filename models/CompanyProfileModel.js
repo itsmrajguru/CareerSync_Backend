@@ -108,7 +108,7 @@ const companySchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // Admin approves company before it can post jobs
+    /* admin has to approve this company before they can start posting their jobs */
     isVerified: {
         type: Boolean,
         default: false
