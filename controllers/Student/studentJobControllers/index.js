@@ -4,6 +4,7 @@ const getJobs = require('./getJobs');
 const externalJobController = require('./externalJobController');
 const toggleSaveJob = require('./toggleSaveJob');
 const getSavedJobs = require('./getSavedJobs');
+const getRecommendedJobs = require('./getRecommendedJobs');
 
 module.exports = {
     getAllJobs,
@@ -11,7 +12,6 @@ module.exports = {
     getJobs,
     externalJobController,
     toggleSaveJob,
-    getSavedJobs
+    getSavedJobs,
+    getRecommendedJobs
 };
-
-

@@ -21,6 +21,14 @@ const applyToJob = async (req, res) => {
             message: 'Job not found'
         });
 
+        // check if the deadline has passed
+        if (job.deadline && new Date() > new Date(job.deadline)) {
+            return res.status(400).json({
+                success: false,
+                message: 'The deadline for this job has passed'
+            });
+        }
+
         /*check if student already applied,
         a)if applied, check in the ApplicationModel*/
         const existing = await Application.findOne({ job: jobId, student: req.user.id });

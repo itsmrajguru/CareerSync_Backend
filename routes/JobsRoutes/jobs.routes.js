@@ -3,7 +3,7 @@ const jobsRouter = express.Router();
 
 const { protect } = require('../../middleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware');
-const { getAllJobs, getJobById, toggleSaveJob, getSavedJobs } = require('../../controllers/Student/studentJobControllers');
+const { getAllJobs, getJobById, toggleSaveJob, getSavedJobs, getRecommendedJobs } = require('../../controllers/Student/studentJobControllers');
 
 const { createJob, getMyJobs, updateJob, deleteJob, getJobApplicants } = require('../../controllers/Company/companyJobControllers');
 
@@ -19,6 +19,7 @@ jobsRouter.get('/mine', protect, isCompany, getMyJobs); //called by the CompanyJ
 
 // student routes — static paths first
 jobsRouter.get('/saved/all', protect, getSavedJobs); //called by the ApplicationsPage...(Student) gets all saved jobs
+jobsRouter.get('/recommended', protect, getRecommendedJobs); //called by the RecommendedJobsPage...(Student) gets recommended jobs
 
 // dynamic /:id routes — must come AFTER all static routes
 jobsRouter.get('/:id', getJobById); // called by JobDetails Page...(students) view a single job detail
