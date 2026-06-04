@@ -1,18 +1,33 @@
-const express=require('express')
-const companyProfileRouter=express.Router()
+const express = require('express');
+const companyProfileRouter = express.Router();
 
-const{getMyCompanyProfile, updateCompanyProfile, getCompanyById } = require('../../controllers/Company/companyProfileControllers/companyProfileController')
+const {
+    getMyCompanyProfile,
+    updateCompanyProfile
+} = require('../../controllers/Company/companyProfileControllers/companyProfileController');
+
+const {
+    getAllCompanies,
+    getCompanyProfileById,
+    followCompany,
+    unfollowCompany,
+    getFollowedCompanies,
+    getCompanyJobs
+} = require('../../controllers/Company/companyProfileControllers/companyDiscoveryController');
 
 const { protect } = require('../../middleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware');
 
-// Company profile routes(/api/v1/companies/)
-
-// "/me" routes — for the logged-in company fetching their own data
+// me profile routes
 companyProfileRouter.get('/me', protect, isCompany, getMyCompanyProfile);
 companyProfileRouter.put('/me', protect, isCompany, updateCompanyProfile);
 
-// "/:id" routes — for admin or user viewing a specific company's profile
-companyProfileRouter.get('/:id', protect, getCompanyById);
+// discovery and follow routes
+companyProfileRouter.get('/', protect, getAllCompanies);
+companyProfileRouter.get('/followed', protect, getFollowedCompanies);
+companyProfileRouter.post('/follow', protect, followCompany);
+companyProfileRouter.post('/unfollow', protect, unfollowCompany); // Changed to POST for simpler frontend request handling
+companyProfileRouter.get('/:id', protect, getCompanyProfileById);
+companyProfileRouter.get('/:id/jobs', protect, getCompanyJobs);
 
-module.exports={companyProfileRouter}
+module.exports = { companyProfileRouter };

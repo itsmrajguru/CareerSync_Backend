@@ -12,12 +12,14 @@ const companySchema = new mongoose.Schema({
         default: '',
         trim: true
     },
-
-    // we will add it later
-    // logo: {
-    //     type: String, 
-    //     default: ''
-    // },
+    logo: {
+        type: String, 
+        default: ''
+    },
+    tagline: {
+        type: String,
+        default: ''
+    },
     about: {
         type: String,
         default: ''
@@ -34,13 +36,83 @@ const companySchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-
+    employeesCount: {
+        type: Number,
+        default: 0
+    },
+    foundedYear: {
+        type: Number,
+        default: 2020
+    },
+    mission: {
+        type: String,
+        default: ''
+    },
+    vision: {
+        type: String,
+        default: ''
+    },
+    values: {
+        type: [String],
+        default: []
+    },
+    workCulture: {
+        type: String,
+        default: ''
+    },
+    benefits: {
+        type: [String],
+        default: []
+    },
+    learningOpportunities: {
+        type: String,
+        default: ''
+    },
+    remotePolicy: {
+        type: String,
+        default: 'Onsite'
+    },
+    growthOpportunities: {
+        type: String,
+        default: ''
+    },
+    mainProducts: {
+        type: [String],
+        default: []
+    },
+    services: {
+        type: [String],
+        default: []
+    },
+    technologiesUsed: {
+        type: [String],
+        default: []
+    },
+    marketsServed: {
+        type: [String],
+        default: []
+    },
+    linkedIn: {
+        type: String,
+        default: ''
+    },
+    twitter: {
+        type: String,
+        default: ''
+    },
+    views: {
+        type: Number,
+        default: 0
+    },
+    followersCount: {
+        type: Number,
+        default: 0
+    },
     // Admin approves company before it can post jobs
     isVerified: {
         type: Boolean,
         default: false
     },
-
     createdAt: {
         type: Date,
         default: Date.now

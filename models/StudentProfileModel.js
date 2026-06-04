@@ -25,6 +25,10 @@ const profileSchema = new mongoose.Schema({
     savedJobs: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Job'
+    }],
+    savedPosts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'CompanyPost'
     }]
 
 })
