@@ -28,14 +28,6 @@ const triggerAIInterview = async (req, res) => {
             })
         }
 
-        /* condition :prevent duplicate triggers */
-        if (application.ipStatus === 'interview_completed') {
-            return res.status(400).json({
-                success: false,
-                message: 'AI interview already completed.'
-            })
-        }
-
         /* step 1.5 : get company user's email */
         const User = require('../../models/AuthModels/UserModel')
         console.log('triggerAIInterview called. req.user:', req.user);
@@ -76,8 +68,15 @@ const triggerAIInterview = async (req, res) => {
             })
         }
 
-        /* step 4 :save the ipSessionId and update statuses on the application */
-        application.ipSessionId = ipResponse.data.session._id || ''
+        /* step 4 :save the ipSessionId and update statuses on the application
+           use optional chaining so we never crash if the response shape varies */
+        const sessionId =
+            ipResponse.data?.session?._id  ||
+            ipResponse.data?.sessionId     ||
+            ipResponse.data?._id           ||
+            ''
+
+        application.ipSessionId = sessionId
         application.ipStatus    = 'interview_sent'
         application.status      = 'interview_sent'
         await application.save()

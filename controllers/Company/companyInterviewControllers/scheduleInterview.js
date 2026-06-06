@@ -81,6 +81,16 @@ const scheduleInterview = async (req, res) => {
             }
         }, 0);
 
+        /* step 4 : reset previous AI interview data so a new round can begin fresh
+           use 'none' for ipStatus (valid enum) and null for ipScore (Number, nullable) */
+        await Application.findByIdAndUpdate(application._id, {
+            ipStatus:    'none',
+            ipScore:     null,
+            ipReportUrl: '',
+            ipSessionId: '',
+            status:      'shortlisted'
+        });
+
         res.status(201).json({
             success: true,
             interview
