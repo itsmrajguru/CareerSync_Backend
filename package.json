@@ -17,6 +17,7 @@
     "bcryptjs": "^3.0.3",
     "boxen": "^5.1.2",
     "chalk": "^4.1.2",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dnscache": "^1.0.2",
