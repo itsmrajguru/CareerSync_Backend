@@ -15,12 +15,16 @@ const {
     getCompanyJobs
 } = require('../../controllers/Company/companyProfileControllers/companyDiscoveryController');
 
+const { uploadLogo } = require('../../controllers/Company/companyProfileControllers/uploadLogo');
+
 const { protect } = require('../../middleware/authMiddleware');
 const { isCompany } = require('../../middleware/roleMiddleware');
+const { uploadImage } = require('../../middleware/uploadMiddleware');
 
 // me profile routes
 companyProfileRouter.get('/me', protect, isCompany, getMyCompanyProfile);
 companyProfileRouter.put('/me', protect, isCompany, updateCompanyProfile);
+companyProfileRouter.put('/me/logo', protect, isCompany, uploadImage.single('logo'), uploadLogo);
 
 // discovery and follow routes
 companyProfileRouter.get('/', protect, getAllCompanies);

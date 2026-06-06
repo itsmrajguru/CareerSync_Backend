@@ -21,6 +21,10 @@ const profileSchema = new mongoose.Schema({
     work: { type: String, default: '' },
     education: { type: String, default: '' },
     skills: { type: String, default: '' },
+    /* profile photo — Cloudinary URL set via PUT /me/avatar */
+    avatar: { type: String, default: '' },
+    /* stored resume — Cloudinary PDF URL set via PUT /me/resume-upload */
+    resumeUrl: { type: String, default: '' },
     // change 3 :Added a savedJobs Fields to store the saved jobs
     savedJobs: [{
         type: mongoose.Schema.Types.ObjectId,
