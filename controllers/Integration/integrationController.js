@@ -20,8 +20,8 @@ const triggerAIInterview = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Application not found.' })
         }
 
-        /* condition :only shortlisted candidates can be sent an AI interview */
-        if (application.status !== 'shortlisted') {
+        /* condition :only shortlisted candidates or candidates who already received an invite can be sent an AI interview */
+        if (application.status !== 'shortlisted' && application.status !== 'interview_sent') {
             return res.status(400).json({
                 success: false,
                 message: 'Can only trigger AI interview for shortlisted candidates.'
