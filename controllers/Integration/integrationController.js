@@ -13,7 +13,7 @@ const triggerAIInterview = async (req, res) => {
         const application = await Application.findById(applicationId)
             .populate('student', 'email username')
             .populate('job', 'title')
-            .populate('company', 'name')
+            .populate('company', 'name email')
 
         /* condition :application must exist */
         if (!application) {
@@ -36,6 +36,14 @@ const triggerAIInterview = async (req, res) => {
             })
         }
 
+        /* step 1.5 : get company user's email */
+        const User = require('../../models/AuthModels/UserModel')
+        console.log('triggerAIInterview called. req.user:', req.user);
+        const companyUser = await User.findById(req.user.id)
+        console.log('companyUser found:', companyUser);
+        const companyEmail = companyUser ? companyUser.email : ''
+        console.log('extracted companyEmail:', companyEmail);
+
         /* step 2 :build the payload for InterviewPilot */
         const ipPayload = {
             studentEmail:    application.student.email,
@@ -43,7 +51,8 @@ const triggerAIInterview = async (req, res) => {
             role:            application.job.title,
             difficulty:      req.body.difficulty    || 'medium',
             resumeText:      req.body.resumeText     || '',
-            csApplicationId: applicationId.toString()
+            csApplicationId: applicationId.toString(),
+            companyEmail:    companyEmail
         }
 
         /* step 3 :call InterviewPilot backend to create the session */
