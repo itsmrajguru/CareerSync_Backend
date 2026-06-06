@@ -29,10 +29,10 @@ const triggerAIInterview = async (req, res) => {
         }
 
         /* condition :prevent duplicate triggers */
-        if (application.ipStatus !== 'none') {
+        if (application.ipStatus === 'interview_completed') {
             return res.status(400).json({
                 success: false,
-                message: 'AI interview already triggered for this candidate.'
+                message: 'AI interview already completed.'
             })
         }
 
@@ -55,7 +55,7 @@ const triggerAIInterview = async (req, res) => {
                     'Content-Type': 'application/json',
                     'x-api-secret': process.env.INTERVIEWPILOT_API_SECRET
                 },
-                timeout: 15000
+                timeout: 30000
             }
         )
 
@@ -80,10 +80,11 @@ const triggerAIInterview = async (req, res) => {
         })
 
     } catch (e) {
-        console.log('triggerAIInterview Error :', e.message)
+        const errorMsg = e.response?.data?.message || e.message;
+        console.log('triggerAIInterview Error :', errorMsg)
         return res.status(500).json({
             success: false,
-            message: 'Failed to trigger AI interview. Please try again.'
+            message: `Failed to trigger AI interview: ${errorMsg}`
         })
     }
 }
