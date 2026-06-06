@@ -42,7 +42,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-api-secret']
 }));
 
 //cookie-parser for recieving token from req
@@ -65,7 +65,8 @@ const { externalJobsRouter } = require('./routes/JobsRoutes/externalJobsRoutes')
 const { applicationRouter } = require('./routes/ApplicationRoutes/applicationRoutes')
 const { adminRouter } = require('./routes/AdminRoutes/adminRoutes')
 const { notificationRouter } = require('./routes/NotificationRoutes/notificationRoutes')
-const { interviewRouter } = require('./routes/InterviewRoutes/interviewRoutes')
+const { interviewRouter }    = require('./routes/InterviewRoutes/interviewRoutes')
+const { integrationRouter }  = require('./routes/IntegrationRoutes/integrationRoutes')
 
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/students', studentProfileRouter)
@@ -77,6 +78,7 @@ app.use('/api/v1/applications', applicationRouter)
 app.use('/api/v1/admin', adminRouter)
 app.use('/api/v1/notifications', notificationRouter)
 app.use('/api/v1/interviews', interviewRouter)
+app.use('/api/v1/integration', integrationRouter)
 
 app.get('/', (req, res) => {
     res.send("<h1><b><strong>CarrerSync Platform's Backend is running...</strong></b></h1>")

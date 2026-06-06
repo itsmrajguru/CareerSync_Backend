@@ -60,7 +60,7 @@ const applicationSchema = new mongoose.Schema({
     // Current status — company updates this
     status: {
         type: String,
-        enum: ['applied', 'shortlisted', 'rejected', 'hired'],
+        enum: ['applied', 'shortlisted', 'rejected', 'hired', 'interview_sent', 'interview_completed'],
         default: 'applied'
     },
 
@@ -74,6 +74,33 @@ const applicationSchema = new mongoose.Schema({
     isSaved: {
         type: Boolean,
         default: false
+    },
+
+    /* InterviewPilot integration fields */
+
+    /* stores the InterviewPilot session id once AI interview is triggered */
+    ipSessionId: {
+        type: String,
+        default: ''
+    },
+
+    /* stores the final overall score (0-100) returned by InterviewPilot */
+    ipScore: {
+        type: Number,
+        default: null
+    },
+
+    /* stores the link to the full interview report on InterviewPilot */
+    ipReportUrl: {
+        type: String,
+        default: ''
+    },
+
+    /* tracks the ai interview lifecycle independently of the main status */
+    ipStatus: {
+        type: String,
+        enum: ['none', 'interview_sent', 'interview_completed'],
+        default: 'none'
     }
 }, { timestamps: true });
 
