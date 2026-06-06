@@ -57,7 +57,24 @@ const scheduleInterview = async (req, res) => {
         /* creating content to send in the email and notification */
         const subject = `Interview scheduled for ${application.job.title}`;
         const text = `Hi ${application.student.username}, your interview for the ${application.job.title} role at ${company.name || 'our company'} is scheduled on ${new Date(scheduledAt).toLocaleString()} via ${mode}. Location/Link: ${location}`;
-
+        const html = `
+            <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#f5f3ff;border-radius:16px;">
+                <h2 style="color:#5b21b6;margin-bottom:8px;">&#128197; Interview Scheduled!</h2>
+                <p style="color:#444;font-size:15px;">
+                    Hi <strong>${application.student.username}</strong>, your interview for the
+                    <strong>${application.job.title}</strong> role at <strong>${company.name || 'our company'}</strong> has been scheduled.
+                </p>
+                <div style="background:#fff;border:1px solid #ddd6fe;border-radius:10px;padding:16px 20px;margin:16px 0;">
+                    <p style="margin:6px 0;color:#444;">&#128336; <strong>Date & Time:</strong> ${new Date(scheduledAt).toLocaleString()}</p>
+                    <p style="margin:6px 0;color:#444;">&#128187; <strong>Mode:</strong> ${mode}</p>
+                    <p style="margin:6px 0;color:#444;">&#128205; <strong>Location / Link:</strong> ${location}</p>
+                </div>
+                <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/student/applications"
+                   style="display:inline-block;margin:20px 0;padding:14px 28px;background:#5b21b6;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                    View My Applications
+                </a>
+                <p style="color:#888;font-size:12px;">If you did not apply for this role, you can safely ignore this email.</p>
+            </div>`;
         // Trigger Notification to student
         createNotification({
             recipient: application.student._id,
@@ -74,7 +91,8 @@ const scheduleInterview = async (req, res) => {
                 await sendEmail({
                     to: application.student.email,
                     subject,
-                    text
+                    text,
+                    html
                 });
             } catch (e) {
                 console.log("Email sending error:", e);

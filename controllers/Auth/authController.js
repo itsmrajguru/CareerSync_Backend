@@ -365,10 +365,25 @@ const forgotPassword = async (req, res) => {
             //step 5 :Send Email
             setTimeout(async () => {
                 try {
+                    const resetHtml = `
+                        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
+                            <h2 style="color:#0179a0;margin-bottom:8px;">&#128274; Password Reset Request</h2>
+                            <p style="color:#444;font-size:15px;">
+                                Hi there! We received a request to reset your CareerSync password.
+                                Click the button below to set a new password. This link expires in <strong>15 minutes</strong>.
+                            </p>
+                            <a href="${resetURL}"
+                               style="display:inline-block;margin:20px 0;padding:14px 28px;background:#0179a0;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                                Reset My Password
+                            </a>
+                            <p style="color:#888;font-size:12px;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+                        </div>`;
+
                     const emailSent = await sendEmail({
                         to: getUser.email,
                         subject: 'CareerSync - Password Reset Request',
-                        text: msg
+                        text: msg,
+                        html: resetHtml
                     })
                     if (!emailSent) {
                         console.log('Email Reset Link send failed')

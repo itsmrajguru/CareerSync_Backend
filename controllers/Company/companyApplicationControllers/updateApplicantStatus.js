@@ -34,16 +34,64 @@ const updateApplicantStatus = async (req, res) => {
             selected by the company */
         if (['shortlisted', 'rejected', 'hired'].includes(status)) {
             let subject = '';
-            let text = '';
+            let text    = '';
+            let html    = '';
+
             if (status === 'shortlisted') {
                 subject = `You've been shortlisted for ${application.job.title}!`;
-                text = `Hi ${application.student.username}! We are glad to inform you that your application for the ${application.job.title} role at ${company.name || 'our company'} has been shortlisted.`;
+                text    = `Hi ${application.student.username}! We are glad to inform you that your application for the ${application.job.title} role at ${company.name || 'our company'} has been shortlisted.`;
+                html = `
+                    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
+                        <h2 style="color:#0179a0;margin-bottom:8px;">&#127881; You've been Shortlisted!</h2>
+                        <p style="color:#444;font-size:15px;">
+                            Hi <strong>${application.student.username}</strong>, great news! Your application for the
+                            <strong>${application.job.title}</strong> role at <strong>${company.name || 'our company'}</strong>
+                            has been shortlisted. The hiring team will be in touch with next steps.
+                        </p>
+                        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/student/applications"
+                           style="display:inline-block;margin:20px 0;padding:14px 28px;background:#0179a0;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                            View My Applications
+                        </a>
+                        <p style="color:#888;font-size:12px;">If you did not apply for this role, you can safely ignore this email.</p>
+                    </div>`;
+
             } else if (status === 'rejected') {
                 subject = `Update on your application for ${application.job.title}`;
-                text = `Hi ${application.student.username}, thank you for applying for the ${application.job.title} role at ${company.name || 'our company'}. Unfortunately, we will not be moving forward with your application at this time.`;
+                text    = `Hi ${application.student.username}, thank you for applying for the ${application.job.title} role at ${company.name || 'our company'}. Unfortunately, we will not be moving forward with your application at this time.`;
+                html = `
+                    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#fff5f5;border-radius:16px;">
+                        <h2 style="color:#b91c1c;margin-bottom:8px;">Application Update</h2>
+                        <p style="color:#444;font-size:15px;">
+                            Hi <strong>${application.student.username}</strong>, thank you for your interest in the
+                            <strong>${application.job.title}</strong> role at <strong>${company.name || 'our company'}</strong>.
+                            After careful consideration, we will not be moving forward with your application at this time.
+                        </p>
+                        <p style="color:#444;font-size:15px;">We encourage you to keep applying — the right opportunity is out there for you!</p>
+                        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/student/applications"
+                           style="display:inline-block;margin:20px 0;padding:14px 28px;background:#b91c1c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                            Explore More Jobs
+                        </a>
+                        <p style="color:#888;font-size:12px;">If you did not apply for this role, you can safely ignore this email.</p>
+                    </div>`;
+
             } else if (status === 'hired') {
                 subject = `Congratulations! You're hired for ${application.job.title}!`;
-                text = `Hi ${application.student.username}, congratulations! You have been selected for the ${application.job.title} role at ${company.name || 'our company'}. The team will reach out with next steps.`;
+                text    = `Hi ${application.student.username}, congratulations! You have been selected for the ${application.job.title} role at ${company.name || 'our company'}. The team will reach out with next steps.`;
+                html = `
+                    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#f0fdf4;border-radius:16px;">
+                        <h2 style="color:#15803d;margin-bottom:8px;">&#127881; Congratulations — You're Hired!</h2>
+                        <p style="color:#444;font-size:15px;">
+                            Hi <strong>${application.student.username}</strong>, we are thrilled to inform you that you have been
+                            selected for the <strong>${application.job.title}</strong> role at
+                            <strong>${company.name || 'our company'}</strong>!
+                        </p>
+                        <p style="color:#444;font-size:15px;">The team will reach out shortly with onboarding details and next steps. Welcome aboard! &#128640;</p>
+                        <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/student/applications"
+                           style="display:inline-block;margin:20px 0;padding:14px 28px;background:#15803d;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+                            View My Applications
+                        </a>
+                        <p style="color:#888;font-size:12px;">If you did not apply for this role, you can safely ignore this email.</p>
+                    </div>`;
             }
 
             // Trigger in-app Notification to the student (application.student._id = UserModel._id)
@@ -63,7 +111,8 @@ const updateApplicantStatus = async (req, res) => {
                     await sendEmail({
                         to: application.student.email,
                         subject,
-                        text
+                        text,
+                        html
                     });
                 } catch (e) {
                     console.log("Email sending error:", e);
