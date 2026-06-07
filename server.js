@@ -46,7 +46,7 @@ app.use(cors({
 }));
 
 // Explicitly handle preflight OPTIONS requests for all routes to prevent preflight failures
-app.options('*', cors());
+app.options('/*', cors());
 
 //cookie-parser for recieving token from req
 app.use(cookieParser())
