@@ -560,9 +560,71 @@ const deleteMe = async (req, res) => {
     }
 };
 
+/* function to resend the signup OTP when the previous one expires
+logic : 1)check that the email belongs to an unverified user
+        2)generate a fresh 6-digit OTP and delete the old one
+        3)send the new OTP email to the user */
+const resendOtp = async (req, res) => {
+    /* step 1 :extract email from request body */
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ success: false, message: 'Email is required.' });
+    }
+
+    try {
+        /* step 2 :find the user and confirm they are still unverified */
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'No account found for this email. Please sign up again.' });
+        }
+
+        if (user.isVerified) {
+            return res.status(400).json({ success: false, message: 'This account is already verified. Please log in.' });
+        }
+
+        /* step 3 :generate a new OTP, replace the old one, and send the email */
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await otpModel.deleteMany({ email });
+        await otpModel.create({ email, otp: otpCode });
+
+        const html = `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f0fbfe;border-radius:16px;">
+                <h2 style="color:#0179a0;margin-bottom:8px;">Your New CareerSync OTP</h2>
+                <p style="color:#444;font-size:15px;">You requested a new code. Use the OTP below to complete your registration. It expires in <strong>10 minutes</strong>.</p>
+                <div style="font-size:40px;font-weight:900;letter-spacing:10px;color:#111;background:#fff;border:2px solid #b3eefb;border-radius:12px;padding:20px 28px;display:inline-block;margin:20px 0;">${otpCode}</div>
+                <p style="color:#888;font-size:12px;">If you did not create a CareerSync account, you can safely ignore this email.</p>
+            </div>
+        `;
+
+        setTimeout(async () => {
+            try {
+                const emailSent = await sendEmail({
+                    to: email,
+                    subject: 'CareerSync — New Verification Code',
+                    text: `Your new CareerSync OTP is: ${otpCode}. It expires in 10 minutes.`,
+                    html
+                });
+                if (!emailSent) console.log('Resend OTP email failed.');
+            } catch (e) {
+                console.log('Resend OTP email error:', e);
+            }
+        }, 0);
+
+        return res.status(200).json({
+            success: true,
+            message: 'A new OTP has been sent to your email.'
+        });
+    } catch (e) {
+        console.error('resendOtp error:', e);
+        return res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
+    }
+};
+
 module.exports = {
     signup,
     verifySignupOtp,
+    resendOtp,
     login,
     refreshToken,
     resetPassword,
