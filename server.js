@@ -45,6 +45,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-api-secret']
 }));
 
+// Explicitly handle preflight OPTIONS requests for all routes to prevent preflight failures
+app.options('*', cors());
+
 //cookie-parser for recieving token from req
 app.use(cookieParser())
 app.use(express.json())
