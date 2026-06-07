@@ -17,8 +17,15 @@ const scheduleInterview = async (req, res) => {
         const { scheduledAt, mode, location, message } = req.body;
 
         /* step 1 :before scheduling an interview,
-        check whether the company exits or not ? */
-        const company = await CompanyProfile.findOne({ user: req.user.id });
+        check whether the company exits or not ?
+        use upsert so that if the profile was never saved to the live DB
+        (e.g. user registered when backend pointed to local MongoDB),
+        we create a blank one automatically instead of rejecting them */
+        const company = await CompanyProfile.findOneAndUpdate(
+            { user: req.user.id },
+            { $setOnInsert: { user: req.user.id } },
+            { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
         if (!company) {
             return res.status(404).json({
                 success: false,
