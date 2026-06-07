@@ -83,6 +83,16 @@ app.get('/', (req, res) => {
     res.send("<h1><b><strong>CarrerSync Platform's Backend is running...</strong></b></h1>")
 })
 
+// Global Error Handler (catches Multer errors like file too large or wrong format)
+app.use((err, req, res, next) => {
+    console.error("Global Error Handler caught:", err.message);
+    res.status(500).json({ 
+        success: false, 
+        message: err.message || "Internal Server Error" 
+    });
+});
+
+
 const PORT = process.env.PORT || 8000
 // app.listen(PORT, () => {
 //     console.log(`Server Started at http://localhost:${PORT}`);

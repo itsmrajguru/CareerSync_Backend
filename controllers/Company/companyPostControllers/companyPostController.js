@@ -42,7 +42,16 @@ const createPost = async (req, res) => {
 /* this function gets all the posts published by a specific company */
 const getPostsByCompany = async (req, res) => {
     try {
-        const { companyId } = req.params;
+        let { companyId } = req.params;
+
+        if (companyId === 'me') {
+            const companyProfile = await CompanyProfile.findOne({ user: req.user.id });
+            if (!companyProfile) {
+                return res.status(404).json({ success: false, message: 'Company profile not found' });
+            }
+            companyId = companyProfile._id;
+        }
+
         const posts = await CompanyPost.find({ company: companyId })
             .populate('company', 'name logo')
             .populate('comments.user', 'username role')
