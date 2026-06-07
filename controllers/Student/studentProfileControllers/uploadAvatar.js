@@ -23,7 +23,7 @@ const uploadAvatar = async (req, res) => {
         const profile = await StudentProfile.findOneAndUpdate(
             { user: req.user.id },
             { avatar: url },
-            { new: true }
+            { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
         if (!profile) {

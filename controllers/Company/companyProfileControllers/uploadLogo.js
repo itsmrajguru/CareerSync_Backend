@@ -23,7 +23,7 @@ const uploadLogo = async (req, res) => {
         const company = await CompanyProfile.findOneAndUpdate(
             { user: req.user.id },
             { logo: url },
-            { new: true }
+            { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
         if (!company) {

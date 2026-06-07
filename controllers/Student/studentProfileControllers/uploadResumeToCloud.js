@@ -19,7 +19,7 @@ const uploadResumeToCloud = async (req, res) => {
         const profile = await StudentProfile.findOneAndUpdate(
             { user: req.user.id },
             { resumeUrl: url },
-            { new: true }
+            { new: true, upsert: true, setDefaultsOnInsert: true }
         );
 
         if (!profile) {
