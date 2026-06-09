@@ -83,6 +83,14 @@ const cancelInterview = async (req, res) => {
             }
         }, 0);
 
+        /* step 3 : reset the application's ipStatus so the company can
+           trigger a fresh AI interview after rescheduling */
+        const Application = require('../../../models/ApplicationModel');
+        await Application.findByIdAndUpdate(interview.application, {
+            ipStatus:   'none',
+            status:     'shortlisted'
+        });
+
         res.status(200).json({
             success: true,
             interview
