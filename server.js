@@ -23,6 +23,7 @@ require('dnscache')({
 //cors for cross-origin platforms
 const allowedOrigins = [
     process.env.CLIENT_URL,
+    "https://careersyncplatformmsr.vercel.app",  // CareerSync Production (Vercel)
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",
